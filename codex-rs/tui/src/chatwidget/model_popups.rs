@@ -1,4 +1,4 @@
-//! Model, collaboration, and reasoning popups for `ChatWidget`.
+//! Model, collaboration, 和 reasoning popups for `ChatWidget`.
 //!
 //! These surfaces are tightly related because changing one often redirects
 //! into another, especially while Plan mode is active.
@@ -10,10 +10,7 @@ impl ChatWidget {
     /// opens the full picker with every available preset.
     pub(crate) fn open_model_popup(&mut self) {
         if !self.is_session_configured() {
-            self.add_info_message(
-                "Model selection is disabled until startup completes.".to_string(),
-                /*hint*/ None,
-            );
+            self.add_info_message("启动完成前无法选择模型。".to_string(), /*hint*/ None);
             return;
         }
 
@@ -21,7 +18,7 @@ impl ChatWidget {
             Ok(models) => models,
             Err(_) => {
                 self.add_info_message(
-                    "Models are being updated; please try /model again in a moment.".to_string(),
+                    "模型列表正在更新，请稍后再试 /model。".to_string(),
                     /*hint*/ None,
                 );
                 return;
@@ -45,7 +42,7 @@ impl ChatWidget {
     fn model_menu_warning_line(&self) -> Option<Line<'static>> {
         let base_url = self.custom_openai_base_url()?;
         let warning = format!(
-            "Warning: OpenAI base URL is overridden to {base_url}. Selecting models may not be supported or work properly."
+            "警告：OpenAI 基础 URL 已覆盖为 {base_url}，模型选择可能不受支持或无法正常工作。"
         );
         Some(Line::from(warning.red()))
     }
@@ -115,7 +112,7 @@ impl ChatWidget {
                     actions,
                     dismiss_on_select: true,
                     ..Default::default()
-                }
+                _ => unreachable!("advanced choices are limited to 最大 and 极致"),
             })
             .collect();
 
@@ -128,12 +125,10 @@ impl ChatWidget {
             })];
 
             let is_current = !items.iter().any(|item| item.is_current);
-            let description = Some(format!(
-                "Choose a specific model and reasoning level (current: {current_label})"
-            ));
+            let description = Some(format!("选择指定模型和推理等级（当前：{current_label}）"));
 
             items.push(SelectionItem {
-                name: "All models".to_string(),
+                name: "所有模型".to_string(),
                 description,
                 is_current,
                 actions,
@@ -142,10 +137,7 @@ impl ChatWidget {
             });
         }
 
-        let header = self.model_menu_header(
-            "Select Model",
-            "Pick a quick auto mode or browse all models.",
-        );
+        let header = self.model_menu_header("选择模型", "选择快速自动模式，或浏览所有模型。");
         self.bottom_pane.show_selection_view(SelectionViewParams {
             footer_hint: Some(standard_popup_hint_line()),
             items,
@@ -169,10 +161,7 @@ impl ChatWidget {
 
     pub(crate) fn open_all_models_popup(&mut self, presets: Vec<ModelPreset>) {
         if presets.is_empty() {
-            self.add_info_message(
-                "No additional models are available right now.".to_string(),
-                /*hint*/ None,
-            );
+            self.add_info_message("当前没有其他可用模型。".to_string(), /*hint*/ None);
             return;
         }
 
@@ -202,8 +191,8 @@ impl ChatWidget {
         }
 
         let header = self.model_menu_header(
-            "Select Model and Effort",
-            "Access legacy models by running codex -m <model_name> or in your config.toml",
+            "选择模型和推理强度",
+            "如需使用旧版模型，请运行 codex -m <模型名称> 或在 config.toml 中配置",
         );
         self.bottom_pane.show_selection_view(SelectionViewParams {
             footer_hint: Some(self.bottom_pane.standard_popup_hint_line()),
@@ -262,21 +251,21 @@ impl ChatWidget {
         effort: Option<ReasoningEffortConfig>,
     ) {
         let reasoning_phrase = match effort.as_ref() {
-            Some(ReasoningEffortConfig::None) => "no reasoning".to_string(),
+            Some(ReasoningEffortConfig::None) => "不进行推理".to_string(),
             Some(selected_effort) => {
                 format!(
-                    "{} reasoning",
+                    "{}推理",
                     Self::reasoning_effort_sentence_label(selected_effort)
                 )
             }
-            None => "the selected reasoning".to_string(),
+            None => "所选推理设置".to_string(),
         };
-        let plan_only_description = format!("Always use {reasoning_phrase} in Plan mode.");
+        let plan_only_description = format!("在计划模式中始终使用{reasoning_phrase}。");
         let plan_reasoning_source = if let Some(plan_override) =
             self.config.plan_mode_reasoning_effort.as_ref()
         {
             format!(
-                "user-chosen Plan override ({})",
+                "用户选择的计划模式覆盖值（{}）",
                 Self::reasoning_effort_sentence_label(plan_override)
             )
         } else if let Some(plan_mask) = collaboration_modes::plan_mask(self.model_catalog.as_ref())
@@ -287,18 +276,18 @@ impl ChatWidget {
                 .and_then(|effort| effort.as_ref())
             {
                 Some(plan_effort) => format!(
-                    "built-in Plan default ({})",
+                    "内置计划模式默认值（{}）",
                     Self::reasoning_effort_sentence_label(plan_effort)
                 ),
-                None => "built-in Plan default (no reasoning)".to_string(),
+                None => "内置计划模式默认值（不进行推理）".to_string(),
             }
         } else {
-            "built-in Plan default".to_string()
+            "内置计划模式默认值".to_string()
         };
         let all_modes_description = format!(
-            "Set the global default reasoning level and the Plan mode override. This replaces the current {plan_reasoning_source}."
+            "设置全局默认推理等级和计划模式覆盖值。这将替换当前的{plan_reasoning_source}。"
         );
-        let subtitle = format!("Choose where to apply {reasoning_phrase}.");
+        let subtitle = format!("选择将{reasoning_phrase}应用到何处。");
 
         let plan_only_actions: Vec<SelectionAction> = vec![Box::new({
             let model = model.clone();
@@ -369,7 +358,7 @@ impl ChatWidget {
         };
         let warning_text = warn_effort.as_ref().map(|effort| {
             let effort_label = Self::reasoning_effort_label(effort);
-            format!("⚠ {effort_label} reasoning effort can quickly consume Plus plan rate limits.")
+            format!("⚠ {effort_label}推理强度可能会快速消耗 Plus 套餐用量限制。")
         });
         let warn_for_model = preset.model.starts_with("gpt-5.1-codex")
             || preset.model.starts_with("gpt-5.1-codex-max")
@@ -394,7 +383,7 @@ impl ChatWidget {
                         model: selected_model,
                         effort: selected_effort,
                     });
-            } else {
+                tx.send(AppEvent::OpenAdvancedReasoningPopup {
                 self.apply_model_and_effort(selected_model, selected_effort);
             }
             return;
@@ -429,7 +418,7 @@ impl ChatWidget {
             let effort = choice.clone();
             let mut effort_label = Self::reasoning_effort_label(&effort);
             if Some(choice) == default_choice.as_ref() {
-                effort_label.push_str(" (default)");
+                effort_label.push_str("（默认）");
             }
 
             let description = supported
@@ -484,9 +473,7 @@ impl ChatWidget {
         }
 
         let mut header = ColumnRenderable::new();
-        header.push(Line::from(
-            format!("Select Reasoning Level for {model_slug}").bold(),
-        ));
+        header.push(Line::from(format!("为 {model_slug} 选择推理等级").bold()));
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
             header: Box::new(header),
@@ -499,12 +486,12 @@ impl ChatWidget {
 
     pub(super) fn reasoning_effort_label(effort: &ReasoningEffortConfig) -> String {
         match effort {
-            ReasoningEffortConfig::None => "None".to_string(),
-            ReasoningEffortConfig::Minimal => "Minimal".to_string(),
-            ReasoningEffortConfig::Low => "Low".to_string(),
-            ReasoningEffortConfig::Medium => "Medium".to_string(),
-            ReasoningEffortConfig::High => "High".to_string(),
-            ReasoningEffortConfig::XHigh => "Extra high".to_string(),
+            ReasoningEffortConfig::None => "无".to_string(),
+            ReasoningEffortConfig::Minimal => "最低".to_string(),
+            ReasoningEffortConfig::Low => "低".to_string(),
+            ReasoningEffortConfig::Medium => "中".to_string(),
+            ReasoningEffortConfig::High => "高".to_string(),
+            ReasoningEffortConfig::XHigh => "超高".to_string(),
             ReasoningEffortConfig::Custom(value) => value.clone(),
         }
     }

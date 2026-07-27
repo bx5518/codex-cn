@@ -11,12 +11,12 @@ impl App {
     pub(super) fn open_url_in_browser(&mut self, url: String) {
         if let Err(err) = webbrowser::open(&url) {
             self.chat_widget
-                .add_error_message(format!("Failed to open browser for {url}: {err}"));
+                .add_error_message(format!("无法在浏览器中打开 {url#[cfg(target_os = "macos")]：{err}"));
             return;
         }
 
         self.chat_widget
-            .add_info_message(format!("Opened {url} in your browser."), /*hint*/ None);
+            .add_info_message(format!("已在浏览器中打开 {url}。"), /*hint*/ None);
     }
 
     pub(super) fn open_desktop_thread(&mut self, thread_id: ThreadId) {
@@ -118,7 +118,7 @@ impl App {
 }
 
 fn desktop_thread_open_error_message(err: &str) -> String {
-    format!(
+    format!("无法在桌面应用中打开此会话：{err}。请安装或启动桌面应用后重试。")
         "Failed to open this session in Codex Desktop: {err}. Install or launch Codex Desktop and try again."
     )
 }
@@ -128,12 +128,12 @@ fn open_desktop_thread_url(url: &str) -> Result<(), String> {
     let status = std::process::Command::new("open")
         .arg(url)
         .status()
-        .map_err(|err| format!("failed to invoke `open`: {err}"))?;
+        .map_err(|err| format!("无法调用 `open`：{err}"))?;
 
     if status.success() {
         Ok(())
     } else {
-        Err(format!("`open {url}` exited with {status}"))
+        Err(format!("`open {url}` 已退出，状态为 {status}"))
     }
 }
 
@@ -184,7 +184,7 @@ if (-not (Test-Path $exe)) {{
     exit 1
 }}
 if (-not (Test-Path $app)) {{
-    Write-Error "Codex Desktop app bundle not found at $app"
+    Write-Error "Codex 在 $app 未找到桌面应用包"
     exit 1
 }}
 

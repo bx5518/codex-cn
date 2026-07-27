@@ -75,7 +75,7 @@ pub(crate) fn format_agent_picker_item_name(
     is_primary: bool,
 ) -> String {
     if is_primary {
-        return "Main [default]".to_string();
+        return "主智能体 [默认]".to_string();
     }
 
     let agent_nickname = agent_nickname
@@ -86,7 +86,7 @@ pub(crate) fn format_agent_picker_item_name(
         (Some(agent_nickname), Some(agent_role)) => format!("{agent_nickname} [{agent_role}]"),
         (Some(agent_nickname), None) => agent_nickname.to_string(),
         (None, Some(agent_role)) => format!("[{agent_role}]"),
-        (None, None) => "Agent".to_string(),
+        (None, None) => "智能体".to_string(),
     }
 }
 
@@ -240,7 +240,7 @@ pub(crate) fn tool_call_history_cell(
                 resume_end(
                     receiver_thread_id,
                     state,
-                    "Agent resume failed",
+                    "恢复智能体失败",
                     &mut agent_metadata,
                 )
             }
@@ -274,11 +274,11 @@ fn spawn_end(
 ) -> PlainHistoryCell {
     let title = match new_thread_id {
         Some(thread_id) => title_with_agent(
-            "Spawned",
+            "已创建",
             agent_label(thread_id, &agent_metadata(thread_id)),
             spawn_request,
         ),
-        None => title_text("Agent spawn failed"),
+        None => title_text("创建智能体失败"),
     };
 
     let mut details = Vec::new();
@@ -294,7 +294,7 @@ fn interaction_end(
     agent_metadata: &mut impl FnMut(ThreadId) -> AgentMetadata,
 ) -> PlainHistoryCell {
     let title = title_with_agent(
-        "Sent input to",
+        "已发送输入至",
         agent_label(receiver_thread_id, &agent_metadata(receiver_thread_id)),
         /*spawn_request*/ None,
     );
@@ -318,12 +318,12 @@ fn waiting_begin(
 
     let title = match receiver_agents.as_slice() {
         [(thread_id, metadata)] => title_with_agent(
-            "Waiting for",
+            "正在等待",
             agent_label(*thread_id, metadata),
             /*spawn_request*/ None,
         ),
-        [] => title_text("Waiting for agents"),
-        _ => title_text(format!("Waiting for {} agents", receiver_agents.len())),
+        [] => title_text("正在等待智能体"),
+        _ => title_text(format!("正在等待 {} 个智能体", receiver_agents.len())),
     };
 
     let details = if receiver_agents.len() > 1 {
@@ -344,7 +344,7 @@ fn waiting_end(
     agent_metadata: &mut impl FnMut(ThreadId) -> AgentMetadata,
 ) -> PlainHistoryCell {
     let details = wait_complete_lines(receiver_thread_ids, agents_states, agent_metadata);
-    collab_event(title_text("Finished waiting"), details)
+    collab_event(title_text("等待结束"), details)
 }
 
 fn close_end(
@@ -353,7 +353,7 @@ fn close_end(
 ) -> PlainHistoryCell {
     collab_event(
         title_with_agent(
-            "Closed",
+            "已关闭",
             agent_label(receiver_thread_id, &agent_metadata(receiver_thread_id)),
             /*spawn_request*/ None,
         ),
@@ -367,7 +367,7 @@ fn resume_begin(
 ) -> PlainHistoryCell {
     collab_event(
         title_with_agent(
-            "Resuming",
+            "正在恢复",
             agent_label(receiver_thread_id, &agent_metadata(receiver_thread_id)),
             /*spawn_request*/ None,
         ),
@@ -383,7 +383,7 @@ fn resume_end(
 ) -> PlainHistoryCell {
     collab_event(
         title_with_agent(
-            "Resumed",
+            "已恢复",
             agent_label(receiver_thread_id, &agent_metadata(receiver_thread_id)),
             /*spawn_request*/ None,
         ),
@@ -450,7 +450,7 @@ fn agent_label_spans(agent: AgentLabel<'_>) -> Vec<Span<'static>> {
     } else if let Some(thread_id) = agent.thread_id {
         spans.push(Span::from(thread_id.to_string()).cyan());
     } else {
-        spans.push(Span::from("agent").cyan());
+        spans.push(Span::from("智能体").cyan());
     }
 
     if let Some(role) = role {
@@ -520,7 +520,7 @@ fn wait_complete_lines(
     entries.extend(extras);
 
     if entries.is_empty() {
-        vec![Line::from(Span::from("No agents completed yet"))]
+        vec![Line::from(Span::from("尚无智能体完成任务"))]
     } else {
         entries
             .into_iter()
@@ -558,13 +558,13 @@ fn status_summary_line(status: Option<&CollabAgentState>, fallback_error: &str) 
 
 fn status_summary_spans(status: &CollabAgentState) -> Vec<Span<'static>> {
     match status.status {
-        CollabAgentStatus::PendingInit => vec![Span::from("Pending init").cyan()],
-        CollabAgentStatus::Running => vec![Span::from("Running").cyan().bold()],
+        CollabAgentStatus::PendingInit => vec![Span::from("等待初始化").cyan()],
+        CollabAgentStatus::Running => vec![Span::from("运行中").cyan().bold()],
         // Allow `.yellow()`
         #[allow(clippy::disallowed_methods)]
-        CollabAgentStatus::Interrupted => vec![Span::from("Interrupted").yellow()],
+        CollabAgentStatus::已中断 => vec![Span::from("已中断").yellow()],
         CollabAgentStatus::Completed => {
-            let mut spans = vec![Span::from("Completed").green()];
+            let mut spans = vec![Span::from("已完成").green()];
             if let Some(message) = status.message.as_ref() {
                 let message_preview = truncate_text(
                     &message.split_whitespace().collect::<Vec<_>>().join(" "),
@@ -578,15 +578,15 @@ fn status_summary_spans(status: &CollabAgentState) -> Vec<Span<'static>> {
             spans
         }
         CollabAgentStatus::Errored => {
-            error_summary_spans(status.message.as_deref().unwrap_or("Agent errored"))
+            error_summary_spans(status.message.as_deref().unwrap_or("智能体发生错误"))
         }
-        CollabAgentStatus::Shutdown => vec![Span::from("Shutdown")],
-        CollabAgentStatus::NotFound => vec![Span::from("Not found").red()],
+        CollabAgentStatus::Shutdown => vec![Span::from("已关闭")],
+        CollabAgentStatus::NotFound => vec![Span::from("未找到").red()],
     }
 }
 
 fn error_summary_spans(error: &str) -> Vec<Span<'static>> {
-    let mut spans = vec![Span::from("Error").red()];
+    let mut spans = vec![Span::from("错误").red()];
     let error_preview = truncate_text(
         &error.split_whitespace().collect::<Vec<_>>().join(" "),
         COLLAB_AGENT_ERROR_PREVIEW_GRAPHEMES,

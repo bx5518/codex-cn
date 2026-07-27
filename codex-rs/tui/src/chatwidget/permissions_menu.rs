@@ -9,34 +9,24 @@ impl ChatWidget {
             .map(|profile| profile.id);
         let presets = builtin_approval_presets();
         let Some(read_only) = presets.iter().find(|preset| preset.id == "read-only") else {
-            self.add_error_message(
-                "Internal error: missing the 'read-only' approval preset.".to_string(),
-            );
+            self.add_error_message("内部错误：缺少 'read-only' 审批预设。".to_string());
             return;
         };
         let Some(default) = presets.iter().find(|preset| preset.id == "auto") else {
-            self.add_error_message(
-                "Internal error: missing the 'auto' approval preset.".to_string(),
-            );
+            self.add_error_message("内部错误：缺少 'auto' 审批预设。".to_string());
             return;
         };
         let Some(full_access) = presets.iter().find(|preset| preset.id == "full-access") else {
-            self.add_error_message(
-                "Internal error: missing the 'full-access' approval preset.".to_string(),
-            );
+            self.add_error_message("内部错误：缺少 'full-access' 审批预设。".to_string());
             return;
         };
-        let mut items = vec![
-            self.builtin_permission_mode_selection_item(
-                default,
-                ":workspace",
-                default
-                    .description
-                    .replace(" (Identical to Agent mode)", ""),
-                AskForApproval::from(default.approval),
-                ApprovalsReviewer::User,
-            ),
-        ];
+        let mut items = vec![self.builtin_permission_mode_selection_item(
+            default,
+            ":workspace",
+            Self::approval_preset_description(default).to_string(),
+            AskForApproval::from(default.approval),
+            ApprovalsReviewer::User,
+        )];
         if self.config.features.enabled(Feature::GuardianApproval) {
             items.push(self.builtin_permission_mode_selection_item(
                 default,
@@ -49,14 +39,14 @@ impl ChatWidget {
         items.push(self.builtin_permission_mode_selection_item(
             full_access,
             ":danger-no-sandbox",
-            full_access.description.to_string(),
+            Self::approval_preset_description(full_access).to_string(),
             AskForApproval::from(full_access.approval),
             ApprovalsReviewer::User,
         ));
         items.push(self.builtin_permission_mode_selection_item(
             read_only,
             ":read-only",
-            read_only.description.to_string(),
+            Self::approval_preset_description(read_only).to_string(),
             AskForApproval::from(read_only.approval),
             ApprovalsReviewer::User,
         ));
@@ -71,14 +61,14 @@ impl ChatWidget {
                         profile
                             .description
                             .as_deref()
-                            .unwrap_or("Configured permission profile."),
+                            .unwrap_or("已配置的权限配置文件。"),
                         active_profile_id.as_deref(),
                     )
                 }),
         );
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
-            title: Some("Update Model Permissions".to_string()),
+            title: Some("更新模型权限".to_string()),
             footer_hint: Some(standard_popup_hint_line()),
             items,
             header: Box::new(()),
@@ -97,7 +87,7 @@ impl ChatWidget {
         let label = match (preset.id, approvals_reviewer) {
             ("auto", ApprovalsReviewer::AutoReview) => APPROVE_FOR_ME_LABEL,
             ("auto", ApprovalsReviewer::User) => ASK_FOR_APPROVAL_LABEL,
-            _ => preset.label,
+            _ => Self::approval_preset_label(preset),
         };
         let active_profile_id = self
             .config

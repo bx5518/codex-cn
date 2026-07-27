@@ -110,7 +110,7 @@ impl ChatWidget {
                 match user_authorization {
                     codex_app_server_protocol::GuardianUserAuthorization::Unknown => {
                         codex_protocol::approvals::GuardianUserAuthorization::Unknown
-                    }
+            }
                     codex_app_server_protocol::GuardianUserAuthorization::Low => {
                         codex_protocol::approvals::GuardianUserAuthorization::Low
                     }

@@ -185,21 +185,16 @@ impl ChatWidget {
             && !name.trim().is_empty()
         {
             vec![
-                "• ".dim(),
-                "Thread forked from ".into(),
+            self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
+                "线程派生自 ".into(),
                 name.cyan(),
                 " (".into(),
                 forked_from_id_text.cyan(),
                 ")".into(),
-            ]
+            )));
             .into()
         } else {
-            vec![
-                "• ".dim(),
-                "Thread forked from ".into(),
-                forked_from_id_text.cyan(),
-            ]
-            .into()
+            vec!["• ".dim(), "线程派生自 ".into(), forked_from_id_text.cyan()].into()
         };
         self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
             PlainHistoryCell::new(vec![line]),

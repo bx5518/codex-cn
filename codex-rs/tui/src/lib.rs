@@ -940,7 +940,7 @@ pub async fn run_main(
         Ok(v) => v,
         #[allow(clippy::print_stderr)]
         Err(e) => {
-            eprintln!("Error parsing -c overrides: {e}");
+            eprintln!("解析 -c 覆盖项时出错：{e}");
             std::process::exit(1);
         }
     };
@@ -950,7 +950,7 @@ pub async fn run_main(
     let codex_home = match find_codex_home() {
         Ok(codex_home) => codex_home.to_path_buf(),
         Err(err) => {
-            eprintln!("Error finding codex home: {err}");
+            eprintln!("查找 Codex 主目录时出错：{err}");
             std::process::exit(1);
         }
     };
@@ -1064,9 +1064,7 @@ pub async fn run_main(
             let selection = oss_selection::select_oss_provider().await?;
             let provider = selection.provider;
             if provider == "__CANCELLED__" {
-                return Err(std::io::Error::other(
-                    "OSS provider selection was cancelled by user",
-                ));
+                return Err(std::io::Error::other("用户已取消选择开源模型提供商"));
             }
             if selection.manually_selected {
                 manually_selected_oss_provider = Some(provider.clone());
@@ -1131,14 +1129,14 @@ pub async fn run_main(
         Ok(Err(e)) => {
             #[allow(clippy::print_stderr)]
             {
-                eprintln!("Could not create otel exporter: {e}");
+                eprintln!("无法创建 OTEL 导出器：{e}");
             }
             None
         }
         Err(_) => {
             #[allow(clippy::print_stderr)]
             {
-                eprintln!("Could not create otel exporter: panicked during initialization");
+                eprintln!("无法创建 OTEL 导出器：初始化时发生 panic");
             }
             None
         }
@@ -1213,7 +1211,7 @@ pub async fn run_main(
     ) {
         #[allow(clippy::print_stderr)]
         {
-            eprintln!("Error adding directories: {warning}");
+            eprintln!("添加目录时出错：{warning}");
             std::process::exit(1);
         }
     }
@@ -1527,7 +1525,7 @@ async fn run_ratatui_app(
             thread_name: None,
             update_action: None,
             exit_reason: ExitReason::Fatal(format!(
-                "No saved session found with ID {id_str}. Run `codex {action}` without an ID to choose from existing sessions."
+                "未找到 ID 为 {id_str} 的已保存会话。请运行不带 ID 的 `codex {action}`，从现有会话中选择。"
             )),
         })
     };
@@ -1879,9 +1877,7 @@ async fn run_ratatui_app(
 )]
 fn restore() {
     if let Err(err) = tui::restore_after_exit() {
-        eprintln!(
-            "failed to restore terminal. Run `reset` or restart your terminal to recover: {err}"
-        );
+        eprintln!("恢复终端失败。请运行 `reset` 或重启终端以恢复：{err}");
     }
 }
 
@@ -1997,7 +1993,7 @@ async fn load_config_or_exit_with_fallback_cwd(
     {
         Ok(config) => config,
         Err(err) => {
-            eprintln!("Error loading configuration: {err}");
+            eprintln!("加载配置时出错：{err}");
             std::process::exit(1);
         }
     }
@@ -2032,11 +2028,11 @@ async fn load_config_toml_or_exit(
                 .map(ConfigLoadError::config_error);
             if let Some(config_error) = config_error {
                 eprintln!(
-                    "Error loading config.toml:\n{}",
+                    "加载 config.toml 时出错：\n{}",
                     format_config_error_with_source(config_error)
                 );
             } else {
-                eprintln!("Error loading config.toml: {err}");
+                eprintln!("加载 config.toml 时出错：{err}");
             }
             std::process::exit(1);
         }

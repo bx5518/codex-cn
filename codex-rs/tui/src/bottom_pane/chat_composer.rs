@@ -413,13 +413,13 @@ const FOOTER_SPACING_HEIGHT: u16 = 0;
 /// Builds the one-line nudge that replaces the ambient footer without adding layout height.
 fn plan_mode_nudge_line() -> Line<'static> {
     Line::from(vec![
-        "Create a plan?".magenta(),
+        "要先制定计划吗？".magenta(),
         "  ".into(),
         key_hint::shift(KeyCode::Tab).into(),
-        " use Plan mode".into(),
+        " 使用规划模式".into(),
         "   ".into(),
         key_hint::plain(KeyCode::Esc).into(),
-        " dismiss".into(),
+        " 关闭提示".into(),
     ])
 }
 
@@ -2676,9 +2676,7 @@ impl ChatComposer {
                 .slash_input()
                 .validate_submission(&text, input_starts_with_space)
         {
-            let message = format!(
-                r#"Unrecognized command '/{name}'. Type "/" for a list of supported commands."#
-            );
+            let message = format!("无法识别命令“/{name}”。输入“/”可查看支持的命令列表。");
             self.app_event_tx.send(AppEvent::InsertHistoryCell(Box::new(
                 history_cell::new_info_event(message, /*hint*/ None),
             )));
@@ -3745,7 +3743,7 @@ impl ChatComposer {
                     insert_text: format!("${skill_name}"),
                     search_terms,
                     path: Some(skill.path_to_skills_md.to_string_lossy().into_owned()),
-                    category_tag: Some("[Skill]".to_string()),
+                    category_tag: Some("[技能]".to_string()),
                     sort_rank: 1,
                 });
             }
@@ -3759,29 +3757,29 @@ impl ChatComposer {
                     .unwrap_or((plugin.config_name.as_str(), ""));
                 let mut capability_labels = Vec::new();
                 if plugin.has_skills {
-                    capability_labels.push("skills".to_string());
+                    capability_labels.push("技能".to_string());
                 }
                 if !plugin.mcp_server_names.is_empty() {
                     let mcp_server_count = plugin.mcp_server_names.len();
                     capability_labels.push(if mcp_server_count == 1 {
-                        "1 MCP server".to_string()
+                        "1 个 MCP 服务器".to_string()
                     } else {
-                        format!("{mcp_server_count} MCP servers")
+                        format!("{mcp_server_count} 个 MCP 服务器")
                     });
                 }
                 if !plugin.app_connector_ids.is_empty() {
                     let app_count = plugin.app_connector_ids.len();
                     capability_labels.push(if app_count == 1 {
-                        "1 app".to_string()
+                        "1 个应用".to_string()
                     } else {
-                        format!("{app_count} apps")
+                        format!("{app_count} 个应用")
                     });
                 }
                 let description = plugin.description.clone().or_else(|| {
                     Some(if capability_labels.is_empty() {
-                        "Plugin".to_string()
+                        "插件".to_string()
                     } else {
-                        format!("Plugin · {}", capability_labels.join(" · "))
+                        format!("插件 · {}", capability_labels.join(" · "))
                     })
                 });
                 let mut search_terms = vec![plugin_name.to_string(), plugin.config_name.clone()];
@@ -3797,7 +3795,7 @@ impl ChatComposer {
                     insert_text: format!("${plugin_name}"),
                     search_terms,
                     path: Some(format!("plugin://{}", plugin.config_name)),
-                    category_tag: Some("[Plugin]".to_string()),
+                    category_tag: Some("[插件]".to_string()),
                     sort_rank: 0,
                 });
             }
@@ -3821,7 +3819,7 @@ impl ChatComposer {
                     insert_text: format!("${slug}"),
                     search_terms,
                     path: Some(format!("app://{connector_id}")),
-                    category_tag: Some("[App]".to_string()),
+                    category_tag: Some("[应用]".to_string()),
                     sort_rank: 1,
                 });
             }
@@ -6348,15 +6346,15 @@ mod tests {
 
         let mentions = composer.mention_items();
         assert_eq!(mentions.len(), 3);
-        assert_eq!(mentions[0].category_tag, Some("[Skill]".to_string()));
+        assert_eq!(mentions[0].category_tag, Some("[技能]".to_string()));
         assert_eq!(mentions[0].path, Some(skill_path.display().to_string()));
         assert_eq!(mentions[0].display_name, "Google Calendar".to_string());
-        assert_eq!(mentions[1].category_tag, Some("[Plugin]".to_string()));
+        assert_eq!(mentions[1].category_tag, Some("[插件]".to_string()));
         assert_eq!(
             mentions[1].path,
             Some("plugin://google-calendar@debug".to_string())
         );
-        assert_eq!(mentions[2].category_tag, Some("[App]".to_string()));
+        assert_eq!(mentions[2].category_tag, Some("[应用]".to_string()));
         assert_eq!(mentions[2].path, Some("app://google_calendar".to_string()));
     }
 

@@ -24,25 +24,25 @@ impl HistoryCell for UpdateAvailableHistoryCell {
         use ratatui_macros::line;
         use ratatui_macros::text;
         let update_instruction = if let Some(update_action) = self.update_action {
-            line!["Run ", update_action.command_str().cyan(), " to update."]
+            line!["运行 ", update_action.command_str().cyan(), " 进行更新。"]
         } else {
             line![
-                "See ",
+                "请访问 ",
                 "https://github.com/openai/codex".cyan().underlined(),
-                " for installation options."
+                " 查看安装选项。"
             ]
         };
 
         let content = text![
             line![
                 padded_emoji("✨").bold().cyan(),
-                "Update available!".bold().cyan(),
+                "有可用更新！".bold().cyan(),
                 " ",
                 format!("{CODEX_CLI_VERSION} -> {}", self.latest_version).bold(),
             ],
             update_instruction,
             "",
-            "See full release notes:",
+            "查看完整发行说明：",
             "https://github.com/openai/codex/releases/latest"
                 .cyan()
                 .underlined(),
@@ -58,16 +58,16 @@ impl HistoryCell for UpdateAvailableHistoryCell {
 
     fn raw_lines(&self) -> Vec<Line<'static>> {
         let update_instruction = if let Some(update_action) = self.update_action {
-            format!("Run {} to update.", update_action.command_str())
+            format!("运行 {} 进行更新。", update_action.command_str())
         } else {
-            "See https://github.com/openai/codex for installation options.".to_string()
+            "请访问 https://github.com/openai/codex 查看安装选项。".to_string()
         };
         vec![
-            Line::from("Update available!"),
+            Line::from("有可用更新！"),
             Line::from(format!("{CODEX_CLI_VERSION} -> {}", self.latest_version)),
             Line::from(update_instruction),
             Line::from(""),
-            Line::from("See full release notes:"),
+            Line::from("查看完整发行说明："),
             Line::from("https://github.com/openai/codex/releases/latest"),
         ]
     }
@@ -109,7 +109,7 @@ impl HistoryCell for CyberPolicyNoticeCell {
         let body = Line::from(vec![
             "  If this seems wrong, try rephrasing your request. To get authorized for security work, join the "
                 .dim(),
-            "Trusted Access for Cyber".cyan().underlined(),
+            "可信访问 for Cyber".cyan().underlined(),
             " program.".dim(),
         ]);
         let wrapped = adaptive_wrap_line(

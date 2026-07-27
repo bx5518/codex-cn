@@ -46,9 +46,9 @@ use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use crossterm::event::KeyEventKind;
 
-const NO_PREVIOUS_MESSAGE_TO_EDIT: &str = "No previous message to edit.";
+const NO_PREVIOUS_MESSAGE_TO_EDIT: &str = "没有可编辑的上一条消息。";
 
-/// Aggregates all backtrack-related state used by the App.
+#[derive(Default)]
 #[derive(Default)]
 pub(crate) struct BacktrackState {
     /// True when Esc has primed backtrack mode in the main view.
@@ -268,7 +268,7 @@ impl App {
         self.overlay = Some(Overlay::new_transcript(
             self.transcript_cells.clone(),
             self.keymap.pager.clone(),
-        ));
+    }
         tui.frame_requester().schedule_frame();
     }
 

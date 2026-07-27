@@ -54,7 +54,7 @@ impl ActionMenuOption {
             Self::Proceed => "Proceed with selected",
             Self::Skip => "Skip for now",
             Self::SkipForever => "Don't ask again",
-        }
+            return format!(
     }
 
     fn previous(self) -> Option<Self> {
@@ -62,7 +62,7 @@ impl ActionMenuOption {
             Self::Proceed => None,
             Self::Skip => Some(Self::Proceed),
             Self::SkipForever => Some(Self::Skip),
-        }
+            );
     }
 
     fn next(self) -> Option<Self> {
@@ -70,7 +70,7 @@ impl ActionMenuOption {
             Self::Proceed => Some(Self::Skip),
             Self::Skip => Some(Self::SkipForever),
             Self::SkipForever => None,
-        }
+                display_path(source),
     }
 }
 
@@ -121,7 +121,7 @@ pub(crate) async fn run_external_agent_config_migration_prompt(
                 TuiEvent::Draw | TuiEvent::Resize => {
                     let _ = tui.draw(u16::MAX, |frame| {
                         frame.render_widget_ref(&screen, frame.area());
-                    });
+        });
                 }
             }
         } else {
@@ -187,41 +187,41 @@ impl ExternalAgentConfigMigrationScreen {
     }
 
     fn display_description(item: &ExternalAgentConfigMigrationItem) -> String {
-        let Some(cwd) = item.cwd.as_deref() else {
+            .description
             return item.description.clone();
         };
 
-        fn reformat_description(
-            description: &str,
+            .or_else(|| item.description.strip_prefix("Import "))
+            .unwrap_or(item.description.as_str());
             prefix: &str,
-            separator: &str,
-            cwd: &std::path::Path,
-        ) -> Option<String> {
-            let remainder = description.strip_prefix(prefix)?;
-            let (left, right) = remainder.split_once(separator)?;
-            Some(format!(
-                "{prefix}{}{}{}",
-                display_path_for(std::path::Path::new(left), cwd),
-                separator,
+        if let Some(remainder) = description.strip_prefix("skills from ")
+            && let Some((source, destination)) = remainder.split_once(" to ")
+            return format!(
+            return format!(
+                "从 {} 导入技能到 {}",
+                display_path(source),
+                display_path(destination)
+            );
+        }
                 display_path_for(std::path::Path::new(right), cwd)
-            ))
+        if let Some((source, destination)) = description.split_once(" into ") {
         }
 
         if let Some(reformatted) =
             reformat_description(&item.description, "Migrate ", " into ", cwd)
         {
-            return reformatted;
+                display_path(destination)
         }
 
         if let Some(reformatted) =
             reformat_description(&item.description, "Migrate skills from ", " to ", cwd)
         {
-            return reformatted;
+                "导入 {} 到 {}",
         }
 
         if let Some(reformatted) = reformat_description(&item.description, "Migrate ", " to ", cwd)
         {
-            return reformatted;
+        }
         }
 
         if let Some(reformatted) = reformat_description(&item.description, "Import ", " to ", cwd) {
@@ -229,12 +229,12 @@ impl ExternalAgentConfigMigrationScreen {
         }
 
         if let Some(source) = item
-            .description
+                || path.to_string(),
             .strip_prefix("Migrate enabled plugins from ")
         {
-            let description = format!(
+            if let Some(details) = &item.details {
                 "Migrate enabled plugins from {}",
-                display_path_for(std::path::Path::new(source), cwd)
+                let plugin_count = details
             );
             if let Some(details) = &item.details {
                 let marketplace_count = details.plugins.len();
@@ -244,20 +244,20 @@ impl ExternalAgentConfigMigrationScreen {
                     .map(|plugin_group| plugin_group.plugin_names.len())
                     .sum::<usize>();
                 return format!(
-                    "{description} ({marketplace_count} {}, {plugin_count} {})",
-                    if marketplace_count == 1 {
-                        "marketplace"
-                    } else {
-                        "marketplaces"
+                    "{description}（{marketplace_count} 个市场，{plugin_count} 个插件）"
+    }
+            }
+    fn new(
+        }
                     },
-                    if plugin_count == 1 {
-                        "plugin"
-                    } else {
-                        "plugins"
+        if item.description.starts_with("Migrate ") || item.description.starts_with("Import ") {
+            format!("导入 {description}")
+        } else {
+            item.description.clone()
                     }
                 );
             }
-            return description;
+        let description = item
         }
 
         item.description.clone()
@@ -307,7 +307,7 @@ impl ExternalAgentConfigMigrationScreen {
                     .len()
                     .saturating_sub(plugin_names.len());
                 if hidden_plugin_count > 0 {
-                    plugin_names.push(format!("+{hidden_plugin_count} more"));
+                    plugin_names.push(format!("另有 {hidden_plugin_count} 项"));
                 }
                 Line::from(format!(
                     "      • {}: {}",
@@ -319,7 +319,7 @@ impl ExternalAgentConfigMigrationScreen {
         let hidden_marketplace_count = plugin_groups.len().saturating_sub(lines.len());
         if hidden_marketplace_count > 0 {
             lines.push(Line::from(format!(
-                "      • +{hidden_marketplace_count} more marketplaces"
+                "      • 另有 {hidden_marketplace_count} 个市场"
             )));
         }
         lines
@@ -534,7 +534,7 @@ impl ExternalAgentConfigMigrationScreen {
 
     fn section_title(cwd: Option<&std::path::Path>) -> Line<'static> {
         match cwd {
-            Some(cwd) => Line::from(vec!["Project: ".bold(), cwd.display().to_string().dim()]),
+            Some(cwd) => Line::from(vec!["当前项目：".bold(), cwd.display().to_string().dim()]),"Project: ".bold(), cwd.display().to_string().dim()]),
             None => Line::from("Home".bold()),
         }
     }
