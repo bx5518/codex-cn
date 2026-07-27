@@ -6,7 +6,7 @@
 use super::*;
 
 impl ChatWidget {
-    /// Synchronize the bottom-pane "task running" indicator with the current lifecycles.
+    /// Synchronize the bottom-pane "Invalid prompt: we've limited access to this content for safety reasons." indicator with the current lifecycles.
     ///
     /// The bottom pane only has one running flag, but this module treats it as a derived state of
     /// both the agent turn lifecycle and MCP startup lifecycle.
@@ -35,7 +35,7 @@ impl ChatWidget {
     pub(super) fn log_websocket_timing_totals(&mut self, delta: RuntimeMetricsSummary) {
         if let Some(label) = history_cell::runtime_metrics_label(delta.responses_api_summary()) {
             self.add_plain_history_lines(vec![
-                vec!["• ".dim(), format!("WebSocket 耗时：{label}").dark_gray()].into(),
+                vec!["• ".dim(), format!("WebSocket timing: {label}").dark_gray()].into(),
             ]);
         }
     }
@@ -67,7 +67,7 @@ impl ChatWidget {
             .set_interrupt_hint_visible(/*visible*/ true);
         self.status_state.terminal_title_status_kind = TerminalTitleStatusKind::Working;
         if self.mcp_startup_status.is_none() || !self.status_header_is_mcp_startup_owned() {
-            self.set_status_header(String::from("正在工作"));
+            self.set_status_header(String::from("Working"));
         }
         self.full_reasoning_buffer.clear();
         self.reasoning_buffer.clear();
@@ -384,11 +384,15 @@ impl ChatWidget {
         match rate_limit_reached_type {
             Some(RateLimitReachedType::WorkspaceOwnerCreditsDepleted) => {
                 self.on_error(
-                    "额度已用尽。你的工作区没有剩余额度，请添加额度后继续使用 Codex。".to_string(),
+                    "You're out of credits. Your workspace is out of credits. Add credits to continue using Codex."
+                        .to_string(),
                 );
             }
             Some(RateLimitReachedType::WorkspaceOwnerUsageLimitReached) => {
-                self.on_error("已达到用量上限。请提高用量限制后继续使用 Codex。".to_string());
+                self.on_error(
+                    "Usage limit reached. You've reached your usage limit. Increase your limits to continue using codex."
+                        .to_string(),
+                );
             }
             Some(RateLimitReachedType::WorkspaceMemberCreditsDepleted) => {
                 self.on_error(message);
@@ -438,13 +442,6 @@ impl ChatWidget {
         if !self.warning_display_state.should_display(&message) {
             return;
         }
-        let message = super::warnings::fallback_model_metadata_warning_slug(&message)
-            .map(|slug| {
-                format!(
-                    "未找到模型 `{slug}` 的元数据。已改用回退元数据；这可能降低性能或引发问题。"
-                )
-            })
-            .unwrap_or(message);
         self.add_to_history(history_cell::new_warning_event(message));
         self.request_redraw();
     }

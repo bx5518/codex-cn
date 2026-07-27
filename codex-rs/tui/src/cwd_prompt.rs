@@ -32,15 +32,15 @@ pub(crate) enum CwdPromptAction {
 impl CwdPromptAction {
     fn verb(self) -> &'static str {
         match self {
-            CwdPromptAction::Resume => "恢复",
-            CwdPromptAction::Fork => "派生",
+            CwdPromptAction::Resume => "resume",
+            CwdPromptAction::Fork => "fork",
         }
     }
 
     fn past_participle(self) -> &'static str {
         match self {
-            CwdPromptAction::Resume => "已恢复",
-            CwdPromptAction::Fork => "已派生",
+            CwdPromptAction::Resume => "resumed",
+            CwdPromptAction::Fork => "forked",
         }
     }
 }
@@ -200,44 +200,44 @@ impl WidgetRef for &CwdPromptScreen {
         let current_cwd = self.current_cwd.as_str();
         let session_cwd = self.session_cwd.as_str();
 
-            format!("使用会话目录（{session_cwd}）"),"");
+        column.push("");
         column.push(Line::from(vec![
-            "选择用于".into(),
+            "Choose working directory to ".into(),
             action_verb.bold(),
-            "此会话的工作目录".into(),
+            " this session".into(),
         ]));
-            format!("使用当前目录（{current_cwd}）"),
+        column.push("");
         column.push(
-            Line::from(format!("会话目录 = {action_past}会话中最后记录的工作目录"))
-                    Line::from("当前目录 = 你现在所在的工作目录".dim()).inset(Insets::tlbr(
-                column.push(
+            Line::from(format!(
+                "Session = latest cwd recorded in the {action_past} session"
+            ))
             .dim()
             .inset(Insets::tlbr(
                 /*top*/ 0, /*left*/ 2, /*bottom*/ 0, /*right*/ 0,
-        column.push("");
+            )),
         );
         column.push(
-            )),
+            Line::from("Current = your current working directory".dim()).inset(Insets::tlbr(
                 /*top*/ 0, /*left*/ 2, /*bottom*/ 0, /*right*/ 0,
             )),
         );
         column.push("");
-            "始终使用会话目录".to_string(),
-            /*index*/ 0,
         column.push(selection_option_row(
+            /*index*/ 0,
+            format!("Use session directory ({session_cwd})"),
             self.highlighted == CwdSelection::Session,
-                "始终使用当前目录".to_string()
+        ));
         column.push(selection_option_row(
             /*index*/ 1,
-            };
+            format!("Use current directory ({current_cwd})"),
             self.highlighted == CwdSelection::Current,
         ));
         column.push("");
         column.push(
             Line::from(vec![
-                "按 ".dim(),
+                "Press ".dim(),
                 key_hint::plain(KeyCode::Enter).into(),
-                " 继续".dim(),
+                " to continue".dim(),
             ])
             .inset(Insets::tlbr(
                 /*top*/ 0, /*left*/ 2, /*bottom*/ 0, /*right*/ 0,
@@ -260,7 +260,7 @@ mod tests {
         CwdPromptScreen::new(
             FrameRequester::test_dummy(),
             CwdPromptAction::Resume,
-            "/Users/example/current".to_string(),
+            "此会话的工作目录".to_string(),
             "/Users/example/session".to_string(),
         )
     }
@@ -268,7 +268,7 @@ mod tests {
     #[test]
     fn cwd_prompt_snapshot() {
         let screen = new_prompt();
-        let mut terminal =
+        let mut 会话目录 = {action_past}会话中最后记录的工作目录 =
             Terminal::new(VT100Backend::new(/*width*/ 80, /*height*/ 14)).expect("terminal");
         terminal
             .draw(|frame| frame.render_widget_ref(&screen, frame.area()))

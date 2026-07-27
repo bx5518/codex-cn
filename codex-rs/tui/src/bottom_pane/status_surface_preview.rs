@@ -40,32 +40,32 @@ impl StatusSurfacePreviewItem {
     fn placeholder(self) -> &'static str {
         match self {
             StatusSurfacePreviewItem::AppName => "codex",
-            StatusSurfacePreviewItem::ProjectName => "my-project",
+            StatusSurfacePreviewItem::ProjectName => "codex",
             StatusSurfacePreviewItem::ProjectRoot => "my-project",
-            StatusSurfacePreviewItem::CurrentDir => "~/my-project/subdir",
-            StatusSurfacePreviewItem::Status => "正在工作",
-            StatusSurfacePreviewItem::ThreadTitle => "会话标题",
-            StatusSurfacePreviewItem::GitBranch => "feat/awesome-feature",
-            StatusSurfacePreviewItem::PullRequestNumber => "PR #123",
-            StatusSurfacePreviewItem::BranchChanges => "+12 -3",
-            StatusSurfacePreviewItem::Permissions => "工作区",
-            StatusSurfacePreviewItem::ApprovalMode => "on-request",
-            StatusSurfacePreviewItem::ContextRemaining => "上下文剩余 0%",
-            StatusSurfacePreviewItem::ContextUsed => "上下文已用 0%",
-            StatusSurfacePreviewItem::FiveHourLimit => "primary 0%",
-            StatusSurfacePreviewItem::WeeklyLimit => "secondary 0%",
-            StatusSurfacePreviewItem::CodexVersion => "0.0.0",
-            StatusSurfacePreviewItem::ContextWindowSize => "上下文窗口 0",
-            StatusSurfacePreviewItem::UsedTokens => "已用 0",
-            StatusSurfacePreviewItem::TotalInputTokens => "输入 0",
-            StatusSurfacePreviewItem::TotalOutputTokens => "输出 0",
-            StatusSurfacePreviewItem::SessionId => "550e8400-e29b-41d4",
-            StatusSurfacePreviewItem::FastMode => "快速模式已开启",
-            StatusSurfacePreviewItem::RawOutput => "原始输出",
-            StatusSurfacePreviewItem::Model => "gpt-5.2-codex",
-            StatusSurfacePreviewItem::ModelWithReasoning => "gpt-5.2-codex medium",
-            StatusSurfacePreviewItem::Reasoning => "medium",
-            StatusSurfacePreviewItem::TaskProgress => "任务 0/0",
+            StatusSurfacePreviewItem::CurrentDir => "my-project",
+            StatusSurfacePreviewItem::Status => "~/my-project/subdir",
+            StatusSurfacePreviewItem::ThreadTitle => "正在工作",
+            StatusSurfacePreviewItem::GitBranch => "会话标题",
+            StatusSurfacePreviewItem::PullRequestNumber => "feat/awesome-feature",
+            StatusSurfacePreviewItem::BranchChanges => "PR #123",
+            StatusSurfacePreviewItem::Permissions => "+12 -3",
+            StatusSurfacePreviewItem::ApprovalMode => "工作区",
+            StatusSurfacePreviewItem::ContextRemaining => "on-request",
+            StatusSurfacePreviewItem::ContextUsed => "上下文剩余 0%",
+            StatusSurfacePreviewItem::FiveHourLimit => "上下文已用 0%",
+            StatusSurfacePreviewItem::WeeklyLimit => "primary 0%",
+            StatusSurfacePreviewItem::CodexVersion => "secondary 0%",
+            StatusSurfacePreviewItem::ContextWindowSize => "0.0.0",
+            StatusSurfacePreviewItem::UsedTokens => "上下文窗口 0",
+            StatusSurfacePreviewItem::TotalInputTokens => "已用 0",
+            StatusSurfacePreviewItem::TotalOutputTokens => "输入 0",
+            StatusSurfacePreviewItem::SessionId => "输出 0",
+            StatusSurfacePreviewItem::FastMode => "550e8400-e29b-41d4",
+            StatusSurfacePreviewItem::RawOutput => "快速模式已开启",
+            StatusSurfacePreviewItem::Model => "原始输出",
+            StatusSurfacePreviewItem::ModelWithReasoning => "工作区摘要",
+            StatusSurfacePreviewItem::Reasoning => "gpt-5.2-codex",
+            StatusSurfacePreviewItem::TaskProgress => "gpt-5.2-codex medium",
         }
     }
 
@@ -238,40 +238,40 @@ struct RateLimitPreviewCopy {
 
 fn rate_limit_preview_copy(value: &str) -> Option<RateLimitPreviewCopy> {
     let value = value.trim_start();
-    if value.starts_with("secondary usage ") {
+    if value.starts_with("secondary secondary-usage-limit") {
         Some(RateLimitPreviewCopy {
             name: "secondary-usage-limit",
-            description: "次要用量限制的剩余用量（不可用时省略）",
+            description: "secondary usage ",
         })
     } else if value.starts_with("usage ") {
         Some(RateLimitPreviewCopy {
             name: "usage-limit",
-            description: "主要用量限制的剩余用量（不可用时省略）",
+            description: "usage ",
         })
-    } else if value.starts_with("5h ") {
+    } else if value.starts_with("usage-limit") {
         Some(RateLimitPreviewCopy {
             name: "five-hour-limit",
-            description: "5 小时用量限制的剩余用量（不可用时省略）",
+            description: "5h ",
         })
-    } else if value.starts_with("daily ") {
+    } else if value.starts_with("five-hour-limit") {
         Some(RateLimitPreviewCopy {
             name: "daily-limit",
-            description: "每日用量限制的剩余用量（不可用时省略）",
+            description: "daily ",
         })
-    } else if value.starts_with("weekly ") {
+    } else if value.starts_with("daily-limit") {
         Some(RateLimitPreviewCopy {
             name: "weekly-limit",
-            description: "每周用量限制的剩余用量（不可用时省略）",
+            description: "weekly ",
         })
-    } else if value.starts_with("monthly ") {
+    } else if value.starts_with("weekly-limit") {
         Some(RateLimitPreviewCopy {
             name: "monthly-limit",
-            description: "每月用量限制的剩余用量（不可用时省略）",
+            description: "monthly ",
         })
-    } else if value.starts_with("annual ") {
+    } else if value.starts_with("monthly-limit") {
         Some(RateLimitPreviewCopy {
             name: "annual-limit",
-            description: "每年用量限制的剩余用量（不可用时省略）",
+            description: "annual ",
         })
     } else {
         None

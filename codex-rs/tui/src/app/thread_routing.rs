@@ -399,7 +399,7 @@ impl App {
     ) -> Result<()> {
         let Some(thread_id) = self.active_thread_id else {
             self.chat_widget
-                .add_error_message("没有可用的活动会话。".to_string());
+                .add_error_message("No active thread is available.".to_string());
             return Ok(());
         };
 
@@ -434,7 +434,7 @@ impl App {
         }
 
         self.chat_widget
-            .add_error_message(format!("会话 {thread_id} 暂不支持此 TUI 操作。"));
+            .add_error_message(format!("Not available in TUI yet for thread {thread_id}."));
         Ok(())
     }
 
@@ -773,7 +773,7 @@ impl App {
             }
             Err(err) => {
                 self.chat_widget.add_error_message(format!(
-                    "处理线程 {thread_id} 的 app-server 请求失败：{err}"
+                    "Failed to resolve app-server request for thread {thread_id}: {err}"
                 ));
                 Ok(false)
             }
@@ -1474,13 +1474,15 @@ impl App {
             }
             if self.active_thread_id == Some(primary_thread_id) {
                 self.chat_widget.add_info_message(
-                    format!("智能体会话 {closed_thread_id} 已关闭，已切换回主会话。"),
+                    format!(
+                        "Agent thread {closed_thread_id} closed. Switched back to main thread."
+                    ),
                     /*hint*/ None,
                 );
             } else {
                 self.clear_active_thread().await;
                 self.chat_widget.add_error_message(format!(
-                    "智能体会话 {closed_thread_id} 已关闭，但切换回主会话 {primary_thread_id} 失败。",
+                    "Agent thread {closed_thread_id} closed. Failed to switch back to main thread {primary_thread_id}.",
                 ));
             }
             return Ok(());

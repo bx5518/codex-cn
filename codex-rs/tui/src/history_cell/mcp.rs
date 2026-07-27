@@ -17,7 +17,7 @@ impl HistoryCell for CompletedMcpToolCallWithImageOutput {
 }
 fn mcp_auth_status_label(status: McpAuthStatus) -> &'static str {
     match status {
-        McpAuthStatus::Unsupported => "不支持",
+        McpAuthStatus::不支持 => "Unsupported",
         McpAuthStatus::NotLoggedIn => "未登录",
         McpAuthStatus::BearerToken => "Bearer 令牌",
         McpAuthStatus::OAuth => "OAuth",
@@ -30,7 +30,7 @@ pub(crate) struct McpToolCallCell {
     start_time: Instant,
     duration: Option<Duration>,
     result: Option<Result<codex_protocol::mcp::CallToolResult, String>>,
-    animations_enabled: bool,
+    animations_已启用: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -388,7 +388,7 @@ pub(crate) fn new_mcp_tools_output(
             continue;
         }
         lines.push(header.into());
-        lines.push(vec!["    • 状态：".into(), "已启用".green()].into());
+        lines.push(vec!["    • 状态：".into(), "enabled".green()].into());
         lines.push(
             vec![
                 "    • 身份验证：".into(),

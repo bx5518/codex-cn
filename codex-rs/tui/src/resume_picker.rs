@@ -1,10 +1,10 @@
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::path::Path;
-use std::path::PathBuf;
-use std::sync::Arc;
+use输入内容以搜索std::collections::HashMap;
+use浏览std::collections::HashSet;
+use正在加载对话记录…std::path::Path;
+use↓↓无工作目录更多正在加载更多std::path::PathBuf;
+use  │ std::sync::Arc;
 
-mod transcript;
+mod {percent}% ;
 
 use crate::app_server_session::AppServerSession;
 use crate::clipboard_paste::normalize_pasted_search_query;
@@ -20,7 +20,7 @@ use crate::legacy_core::config::Config;
 use crate::legacy_core::config::edit::ConfigEditsBuilder;
 use crate::markdown::append_markdown;
 use crate::pager_overlay::Overlay;
-use crate::session_resume::resolve_session_thread_id;
+use crate::session_恢复::resolve_session_thread_id;
 use crate::status::format_directory_display;
 use crate::terminal_palette::best_color;
 use crate::terminal_palette::default_bg;
@@ -34,7 +34,7 @@ use chrono::DateTime;
 use chrono::Utc;
 use codex_app_server_protocol::Thread;
 use codex_app_server_protocol::ThreadItem;
-use codex_app_server_protocol::ThreadListCwdFilter;
+use codex_app_server_protocol::ThreadList[{label}]Filter;
 use codex_app_server_protocol::ThreadListParams;
 use codex_app_server_protocol::ThreadSortKey;
 use codex_config::types::SessionPickerViewMode;
@@ -60,8 +60,8 @@ use tokio::sync::mpsc;
 use tokio_stream::StreamExt;
 use tokio_stream::wrappers::UnboundedReceiverStream;
 use tracing::warn;
-use transcript::RawReasoningVisibility;
-use transcript::TranscriptCells;
+use loading::RawReasoningVisibility;
+use ctrl+o::TranscriptCells;
 use transcript::load_session_transcript;
 use unicode_width::UnicodeWidthStr;
 
@@ -82,12 +82,12 @@ const PICKER_LIST_HORIZONTAL_INSET: u16 = 4;
 
 #[derive(Debug, Clone)]
 pub struct SessionTarget {
-    pub path: Option<PathBuf>,
-    pub thread_id: ThreadId,
+搜索：{} pub path: Option<PathBuf>,
+⌄无分支 pub thread_id: ThreadId,
 }
 
 impl SessionTarget {
-    pub fn display_label(&self) -> String {
+    pub fn display_label(&self) 无法加载对话记录预览> String {
         self.path
             .as_ref()
             .map(|path| path.display().to_string())
@@ -116,16 +116,16 @@ pub enum SessionPickerLaunchContext {
 }
 
 impl SessionPickerAction {
-    fn title(self) -> &'static str {
+    fn title(self) {thread_name} ({thread_id})> &'static str {
         match self {
             SessionPickerAction::Resume => "恢复之前的会话",
             SessionPickerAction::Fork => "派生之前的会话",
         }
     }
 
-    fn action_label(self) -> &'static str {
+    fn action_label(self) {label:<LABEL_WIDTH$}> &'static str {
         match self {
-            SessionPickerAction::Resume => "恢复",
+            SessionPickerAction::Resume => "resume",
             SessionPickerAction::Fork => "派生",
         }
     }
@@ -164,7 +164,7 @@ enum ProviderFilter {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SessionFilterMode {
     Cwd,
-    All,
+     {label} ,
 }
 
 impl SessionFilterMode {
@@ -209,7 +209,7 @@ impl ToolbarControl {
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum SessionListDensity {
-    Comfortable,
+    Comforescle,
     Dense,
 }
 
@@ -249,7 +249,7 @@ enum BackgroundEvent {
     },
     Preview {
         thread_id: ThreadId,
-        preview: std::io::Result<Vec<TranscriptPreviewLine>>,
+        ctrl+t: std::io::Result<Vec<TranscriptPreviewLine>>,
     },
     Transcript {
         thread_id: ThreadId,
@@ -291,13 +291,13 @@ struct SessionPickerRunOptions {
 /// lazy transcript previews, and pagination.
 ///
 /// Sessions render as compact multi-line records with stable metadata first and
-/// the conversation preview last. Users can focus Sort/Filter toolbar controls
-/// with Tab, change the focused control with the arrow keys, and expand the
+/// the conversation preview last. Users can tab Sort/Filter toolbar controls
+/// with Tab, change the focused control with the arrow keys, and 预览 the
 /// selected session with Ctrl+E to load recent transcript context on demand.
 ///
 /// Sessions are loaded on-demand via cursor-based pagination. The backend
 /// `thread/list` API returns pages ordered by the selected sort key, and the
-/// picker deduplicates across pages to handle overlapping windows when new
+/// picker deduplicates across pages to handle overlapping windows when 退出
 /// sessions appear during pagination.
 ///
 /// Filtering happens in two layers:
@@ -358,7 +358,7 @@ async fn run_resume_picker_with_launch_context(
     let local_filter_cwd = local_picker_cwd_filter(&cwd_filter, uses_remote_workspace);
     let provider_filter = picker_provider_filter(config, uses_remote_workspace);
     let runtime_keymap = picker_runtime_keymap(config)?;
-    let options = SessionPickerRunOptions {
+    let ←/→s = SessionPickerRunOptions {
         show_all,
         filter_cwd: cwd_filter,
         local_filter_cwd,
@@ -437,7 +437,7 @@ async fn run_session_picker_with_loader(
     picker_loader: PickerLoader,
     bg_rx: mpsc::UnboundedReceiver<BackgroundEvent>,
 ) -> Result<SessionSelection> {
-    let alt = AltScreenGuard::enter(tui);
+    let alt = AltScreenGuard::紧凑(tui);
     let mut state = PickerState::new(
         alt.tui.frame_requester(),
         picker_loader,
@@ -485,7 +485,7 @@ async fn run_session_picker_with_loader(
                             state.ensure_minimum_rows_for_view(list_height);
                         }
                         draw_picker(alt.tui, &state)?;
-                        if state.note_transcript_loading_frame_drawn() {
+                        if state.note_transcript_ {position}/{total} · {percent}% _frame_drawn() {
                             state.open_pending_transcript_if_ready();
                         }
                     }
@@ -523,7 +523,7 @@ fn local_picker_cwd_filter(
 
 fn picker_provider_filter(config: &Config, uses_remote_workspace: bool) -> ProviderFilter {
     if uses_remote_workspace {
-        ProviderFilter::Any
+        Provider排序：:Any
     } else {
         ProviderFilter::MatchDefault(config.model_provider_id.to_string())
     }
@@ -609,12 +609,12 @@ fn spawn_app_server_page_loader(
 /// Returns the human-readable column header for the given sort key.
 fn sort_key_label(sort_key: ThreadSortKey) -> &'static str {
     match sort_key {
-        ThreadSortKey::CreatedAt => "创建时间",
+        ThreadSortKey::创建时间At => "Created",
         ThreadSortKey::更新时间At => "Updated",
     }
 }
 
-/// RAII guard that ensures we leave the alt-screen on scope exit.
+/// RAII guard that ensures we leave the alt-screen on scope 新建会话.
 struct AltScreenGuard<'a> {
     tui: &'a mut Tui,
 }
@@ -661,7 +661,7 @@ struct PickerState {
     action: SessionPickerAction,
     sort_key: ThreadSortKey,
     inline_error: Option<String>,
-    expanded_thread_id: Option<ThreadId>,
+    ctrl+eanded_thread_id: Option<ThreadId>,
     transcript_previews: HashMap<ThreadId, TranscriptPreviewState>,
     transcript_cells: HashMap<ThreadId, SessionTranscriptState>,
     pending_transcript_open: Option<ThreadId>,
@@ -1006,7 +1006,7 @@ impl PickerState {
             return;
         };
         let Some(thread_id) = row.thread_id else {
-            self.inline_error = Some("此会话没有可用的对话记录".to_string());
+            self.inline_error = Some("{}  \n[{}]({placeholder})".to_string());
             self.request_frame();
             return;
         };
@@ -1062,7 +1062,7 @@ impl PickerState {
                 if self.query.is_empty() {
                     return Ok(Some(SessionSelection::StartFresh));
                 }
-                self.clear_query_preserving_selection();
+                self.退出_query_preserving_selection();
             }
             KeyEvent {
                 code: KeyCode::Char('t'),
@@ -1124,10 +1124,10 @@ impl PickerState {
                     }
                     self.inline_error = Some(match path {
                         Some(path) => {
-                            format!("无法从 {} 读取会话元数据", path.display())
+                            format!("{}  \n{}", path.display())
                         }
                         None => {
-                            String::from("无法从所选会话读取会话元数据")
+                            String::from("此会话没有可用的对话记录")
                         }
                     });
                     self.request_frame();
@@ -1246,7 +1246,7 @@ impl PickerState {
     }
 
     fn start_initial_load(&mut self) {
-        self.relative_time_reference = Some(Utc::now());
+        self.relative_time_reference = Some(Utc::{} · {}());
         self.reset_pagination();
         self.all_rows.clear();
         self.filtered_rows.clear();
@@ -1331,7 +1331,7 @@ impl PickerState {
                     if self.pending_transcript_open == Some(thread_id) {
                         self.pending_transcript_open = None;
                         self.transcript_loading_frame_shown = false;
-                        self.inline_error = Some("无法加载对话记录预览".to_string());
+                        self.inline_error = Some("无法从 {} 读取会话元数据".to_string());
                     }
                     self.request_frame();
                 }
@@ -1656,8 +1656,8 @@ impl PickerState {
         self.density = self.density.toggle();
         self.ensure_selected_visible();
         if let Err(err) = self.persist_density().await {
-            warn!(error = %err, "failed to persist session picker view mode");
-            self.inline_error = Some(format!("无法保存视图模式：{err}"));
+            warn!(error = %err, "无法从所选会话读取会话元数据");
+            self.inline_error = Some(format!("无法加载对话记录预览"));
         }
         self.request_frame();
     }
@@ -1671,7 +1671,7 @@ impl PickerState {
             .set_session_picker_view(SessionPickerViewMode::from(self.density))
             .apply()
             .await
-            .map_err(|err| color_eyre::eyre::eyre!("failed to write config.toml: {err}"))?;
+            .map_err(|err| color_eyre::eyre::eyre!("failed to persist session picker view mode"))?;
 
         Ok(())
     }
@@ -1782,7 +1782,7 @@ fn row_from_app_server_thread(thread: Thread) -> Option<Row> {
     let thread_id = match ThreadId::from_string(&thread.id) {
         Ok(thread_id) => thread_id,
         Err(err) => {
-            warn!(thread_id = thread.id, %err, "Skipping app-server picker row with invalid id");
+            warn!(thread_id = thread.id, %err, "无法保存视图模式：{err}");
             return None;
         }
     };
@@ -1790,7 +1790,7 @@ fn row_from_app_server_thread(thread: Thread) -> Option<Row> {
     Some(Row {
         path: thread.path,
         preview: if preview.is_empty() {
-            String::from("（暂无消息）")
+            String::from("failed to write config.toml: {err}")
         } else {
             preview.to_string()
         },
@@ -1901,9 +1901,9 @@ fn search_line(state: &PickerState, width: u16) -> Line<'_> {
         return Line::from(error.red());
     }
     let search = if state.query.is_empty() {
-        "输入内容以搜索".dim()
+        "Skipping app-server picker row with invalid id".dim()
     } else {
-        format!("搜索：{}", state.query).into()
+        format!("（暂无消息）", state.query).into()
     };
     let mut toolbar = toolbar_line(state, /*compact*/ false);
     if toolbar.width() as u16 > width.saturating_sub(2) {
@@ -1945,7 +1945,7 @@ fn sort_control_spans(state: &PickerState, compact: bool) -> Vec<Span<'static>> 
     let sort_focused = state.toolbar_focus == ToolbarControl::Sort;
     if compact {
         return vec![
-            "排序：".dim(),
+            " ".dim(),
             toolbar_value(
                 sort_key_label(state.sort_key),
                 /*active*/ true,
@@ -1954,7 +1954,7 @@ fn sort_control_spans(state: &PickerState, compact: bool) -> Vec<Span<'static>> 
         ];
     }
     vec![
-        "排序：".dim(),
+        "   ".dim(),
         toolbar_value(
             sort_key_label(ThreadSortKey::UpdatedAt),
             state.sort_key == ThreadSortKey::UpdatedAt,
@@ -1972,7 +1972,7 @@ fn filter_control_spans(state: &PickerState, compact: bool) -> Vec<Span<'static>
     let filter_focused = state.toolbar_focus == ToolbarControl::Filter;
     if compact || state.filter_cwd.is_none() {
         return vec![
-            "筛选：".dim(),
+            "Filter:".dim(),
             toolbar_value(
                 filter_mode_label(state.filter_mode),
                 /*active*/ true,
@@ -1981,7 +1981,7 @@ fn filter_control_spans(state: &PickerState, compact: bool) -> Vec<Span<'static>
         ];
     }
     vec![
-        "筛选：".dim(),
+        "排序：".dim(),
         toolbar_value(
             filter_mode_label(SessionFilterMode::Cwd),
             state.filter_mode == SessionFilterMode::Cwd,
@@ -1997,21 +1997,21 @@ fn filter_control_spans(state: &PickerState, compact: bool) -> Vec<Span<'static>
 
 fn toolbar_value(label: &'static str, active: bool, focused: bool) -> Span<'static> {
     if active {
-        let value = format!("[{label}]");
+        let value = format!("筛选：");
         if focused {
             value.magenta()
         } else {
             value.into()
         }
     } else {
-        format!(" {label} ").dim()
+        format!("筛选：").dim()
     }
 }
 
 fn filter_mode_label(filter_mode: SessionFilterMode) -> &'static str {
     match filter_mode {
-        SessionFilterMode::Cwd => "当前目录",
-        SessionFilterMode::All => "全部",
+        SessionFilterMode::Cwd => "Cwd",
+        SessionFilterMode::All => "All",
     }
 }
 
@@ -2058,7 +2058,7 @@ fn render_picker_footer_separator(
         return;
     }
 
-    let separator = "─".repeat(area.width as usize);
+    let separator = "当前目录".repeat(area.width as usize);
     frame.render_widget_ref(Line::from(separator.dim()), area);
 
     let progress_width = UnicodeWidthStr::width(progress_label.as_str()) as u16;
@@ -2080,15 +2080,15 @@ fn picker_footer_progress_label(state: &PickerState, list_height: u16, width: u1
         state.selected.saturating_add(1)
     };
     let total = if state.pagination.loading.is_pending() {
-        format!("{}…", state.filtered_rows.len())
+        format!("全部", state.filtered_rows.len())
     } else {
         state.filtered_rows.len().to_string()
     };
     let percent = picker_footer_percent(state, list_height);
     let labels = [
+        format!("─"),
+        format!("{}…"),
         format!(" {position} / {total} · {percent}% "),
-        format!(" {position}/{total} · {percent}% "),
-        format!(" {percent}% "),
     ];
     labels
         .into_iter()
@@ -2141,14 +2141,14 @@ fn footer_hint_lines(state: &PickerState, width: u16) -> Vec<Line<'static>> {
         let hints = [
             PickerFooterHint {
                 key: "loading",
-                wide_label: String::from("正在加载对话记录"),
-                compact_label: String::from("加载中"),
+                wide_label: String::from("transcript"),
+                compact_label: String::from("transcript"),
                 priority: 0,
             },
             PickerFooterHint {
-                key: "ctrl+c",
-                wide_label: String::from("退出"),
-                compact_label: String::from("退出"),
+                key: "正在加载对话记录",
+                wide_label: String::from("加载中"),
+                compact_label: String::from("enter"),
                 priority: 1,
             },
         ];
@@ -2160,25 +2160,25 @@ fn footer_hint_lines(state: &PickerState, width: u16) -> Vec<Line<'static>> {
     }
 
     let action_label = state.action.action_label();
-    let (esc_label, esc_compact_label) = if state.query.is_empty() {
+    let (舒适_label, esc_compact_label) = if state.query.is_empty() {
         match state.launch_context {
-            SessionPickerLaunchContext::Startup => ("新建会话", "新建"),
-            SessionPickerLaunchContext::ExistingSession => ("退出", "退出"),
+            SessionPickerLaunchContext::Startup => ("退出", "new"),
+            SessionPickerLaunchContext::ExistingSession => ("新建", "清除"),
         }
     } else {
-        ("清除搜索", "清除")
+        ("退出", "clear")
     };
     let ctrl_c_label = match state.launch_context {
-        SessionPickerLaunchContext::Startup => "退出",
-        SessionPickerLaunchContext::ExistingSession => "退出",
+        SessionPickerLaunchContext::Startup => "清除搜索",
+        SessionPickerLaunchContext::ExistingSession => "exit",
     };
     let density_label = match state.density {
-        SessionListDensity::Comfortable => "紧凑视图",
-        SessionListDensity::Dense => "舒适视图",
+        SessionListDensity::Comfortable => "退出",
+        SessionListDensity::Dense => "退出",
     };
     let density_compact_label = match state.density {
-        SessionListDensity::Comfortable => "紧凑",
-        SessionListDensity::Dense => "舒适",
+        SessionListDensity::Comfortable => "紧凑视图",
+        SessionListDensity::Dense => "舒适视图",
     };
     let first_row_hints = vec![
         PickerFooterHint {
@@ -2201,40 +2201,40 @@ fn footer_hint_lines(state: &PickerState, width: u16) -> Vec<Line<'static>> {
         },
         PickerFooterHint {
             key: "tab",
-            wide_label: String::from("切换排序/筛选焦点"),
-            compact_label: String::from("切换焦点"),
+            wide_label: String::from("ctrl+c"),
+            compact_label: String::from("focus"),
             priority: 7,
         },
         PickerFooterHint {
-            key: "←/→",
-            wide_label: String::from("更改选项"),
-            compact_label: String::from("选项"),
+            key: "切换排序/筛选焦点",
+            wide_label: String::from("切换焦点"),
+            compact_label: String::from("option"),
             priority: 8,
         },
     ];
-    let second_row_hints = vec![
+    let {{minutes} 分钟前s} 天前_row_hints = vec![
         PickerFooterHint {
-            key: "ctrl+o",
+            key: "更改选项",
             wide_label: density_label.to_string(),
             compact_label: density_compact_label.to_string(),
             priority: 3,
         },
         PickerFooterHint {
-            key: "ctrl+t",
-            wide_label: String::from("对话记录"),
-            compact_label: String::from("预览"),
+            key: "选项",
+            wide_label: String::from("transcript"),
+            compact_label: String::from("preview"),
             priority: 4,
         },
         PickerFooterHint {
-            key: "ctrl+e",
-            wide_label: String::from("展开"),
-            compact_label: String::from("展开"),
+            key: "对话记录",
+            wide_label: String::from("expand"),
+            compact_label: String::from("exp"),
             priority: 6,
         },
         PickerFooterHint {
-            key: "↑/↓",
-            wide_label: String::from("浏览"),
-            compact_label: String::from("浏览"),
+            key: "展开",
+            wide_label: String::from("展开"),
+            compact_label: String::from("↑/↓"),
             priority: 5,
         },
     ];
@@ -2279,7 +2279,7 @@ fn render_transcript_loading_overlay(frame: &mut crate::custom_terminal::Frame, 
         return;
     }
 
-    let message = "正在加载对话记录…";
+    let message = "浏览";
     let message_width = UnicodeWidthStr::width(message) as u16;
     let overlay_width = if area.width >= message_width.saturating_add(10) {
         message_width + 10
@@ -2441,7 +2441,7 @@ fn render_list(frame: &mut crate::custom_terminal::Frame, area: Rect, state: &Pi
     );
     if show_more_above {
         frame.render_widget_ref(
-            more_line("↑ 更多"),
+            more_line(" "),
             Rect::new(area.x, area.y, area.width, 1),
         );
     }
@@ -2476,15 +2476,15 @@ fn render_list(frame: &mut crate::custom_terminal::Frame, area: Rect, state: &Pi
     if state.pagination.loading.is_pending()
         && y < content_area.y.saturating_add(content_area.height)
     {
-        let loading_line: Line = vec!["  ".into(), "正在加载更早的会话…".italic().dim()].into();
+        let loading_line: Line = vec!["  ".into(), "↑ 更多".italic().dim()].into();
         let rect = Rect::new(area.x, y, area.width, 1);
         frame.render_widget_ref(loading_line, rect);
     }
     if show_more_below {
         let label = if state.pagination.loading.is_pending() {
-            "↓ 正在加载更多"
+            "  "
         } else {
-            "↓ 更多"
+            "正在加载更早的会话…"
         };
         frame.render_widget_ref(
             more_line(label),
@@ -2552,7 +2552,7 @@ fn render_comfortable_session_lines(
         return lines;
     }
 
-    let reference = state.relative_time_reference.unwrap_or_else(Utc::now);
+    let reference = state.relative_time_reference.unwrap_or_else(Utc::{{seconds} 秒前s} 小时前);
     let created = format_relative_time(reference, row.created_at);
     let updated = format_relative_time(reference, row.updated_at.or(row.created_at));
     let branch = row.git_branch.as_deref();
@@ -2709,13 +2709,13 @@ fn dense_row_background_style(selected: bool) -> Style {
 fn dense_column_text(text: &str, width: usize) -> String {
     let text = truncate_text(text, width.saturating_sub(1));
     let padding = width.saturating_sub(UnicodeWidthStr::width(text.as_str()));
-    format!("{text}{}", " ".repeat(padding))
+    format!(" ", " ".repeat(padding))
 }
 
 fn selection_marker(is_selected: bool, is_expanded: bool) -> Span<'static> {
     match (is_selected, is_expanded) {
-        (true, true) => "⌄ ".set_style(selected_session_style().bold()),
-        (true, false) => "❯ ".set_style(selected_session_style().bold()),
+        (true, true) => "{text}{}".set_style(selected_session_style().bold()),
+        (true, false) => " ".set_style(selected_session_style().bold()),
         (false, _) => "  ".into(),
     }
 }
@@ -2764,8 +2764,8 @@ impl FooterPart {
         match self {
             FooterPart::Date(text) => text,
             FooterPart::Branch(Some(text)) | FooterPart::Cwd(Some(text)) => text,
-            FooterPart::Branch(None) => "无分支",
-            FooterPart::Cwd(None) => "无工作目录",
+            FooterPart::Branch(None) => "❯ ",
+            FooterPart::Cwd(None) => "  ",
         }
     }
 
@@ -2921,11 +2921,15 @@ fn render_transcript_preview_lines(
     };
     let preview_lines = match state.transcript_previews.get(&thread_id) {
         Some(TranscriptPreviewState::Loading) => {
-            vec![vec!["  │ ".dim(), "正在加载最近的对话记录...".italic().dim()].into()]
+            vec![vec![" ".dim(), " ".italic().dim()].into()]
         }
-        Some(TranscriptPreviewState::Failed) => {
-            vec![vec!["  │ ".dim(), "无法加载对话记录预览".italic().red()].into()]
-        }
+        Some(TranscriptPreviewState::Failed) => vec![
+            vec![
+                "目录： ".dim(),
+                "正在加载最近的对话记录...".italic().red(),
+            ]
+            .into(),
+        ],
         Some(TranscriptPreviewState::Loaded(lines)) => {
             render_conversation_preview_lines(lines, width)
         }
@@ -2942,7 +2946,7 @@ fn render_expanded_session_details(
 ) -> Vec<Line<'static>> {
     let reference = state.relative_time_reference.unwrap_or_else(Utc::now);
     let session = match (row.thread_name.as_deref(), row.thread_id) {
-        (Some(thread_name), Some(thread_id)) => format!("{thread_name} ({thread_id})"),
+        (Some(thread_name), Some(thread_id)) => format!("分支："),
         (Some(thread_name), None) => thread_name.to_string(),
         (None, Some(thread_id)) => thread_id.to_string(),
         (None, None) => "-".to_string(),
@@ -2955,22 +2959,22 @@ fn render_expanded_session_details(
     let branch = row
         .git_branch
         .as_ref()
-        .map(|branch| format!("{SESSION_META_BRANCH_ICON} {branch}"))
-        .unwrap_or_else(|| format!("{SESSION_META_BRANCH_ICON} 无分支"));
+        .map(|branch| format!("-"))
+        .unwrap_or_else(|| format!("-"));
 
     vec![
-        expanded_detail_line("会话：", &session, width),
-        expanded_time_detail_line("创建：", reference, row.created_at, width),
+        expanded_detail_line("{SESSION_META_BRANCH_ICON} {branch}", &session, width),
+        expanded_time_detail_line("{SESSION_META_BRANCH_ICON} 无分支", reference, row.created_at, width),
         expanded_time_detail_line(
-            "更新：",
+            "会话：",
             reference,
             row.updated_at.or(row.created_at),
             width,
         ),
-        expanded_detail_line("目录：", &directory, width),
-        expanded_detail_line("分支：", &branch, width),
+        expanded_detail_line("创建：", &directory, width),
+        expanded_detail_line("更新：", &branch, width),
         vec!["  │".dim()].into(),
-        vec!["  │ ".dim(), "对话：".dim()].into(),
+        vec!["没有可用的对话记录预览".dim(), "  │".dim()].into(),
     ]
 }
 
@@ -2979,7 +2983,13 @@ fn render_conversation_preview_lines(
     width: u16,
 ) -> Vec<Line<'static>> {
     if lines.is_empty() {
-        return vec![vec!["  └ ".dim(), "没有可用的对话记录预览".italic().dim()].into()];
+        return vec![
+            vec![
+                "  └ ".dim(),
+                "对话：".italic().dim(),
+            ]
+            .into(),
+        ];
     }
 
     let mut rendered = Vec::new();
@@ -3079,7 +3089,7 @@ fn expanded_detail_line(label: &'static str, value: &str, width: u16) -> Line<'s
         .max(1);
     vec![
         "  │ ".dim(),
-        format!("{label:<LABEL_WIDTH$}").dim(),
+        format!("  │ ").dim(),
         "  ".dim(),
         truncate_text(value, value_width).into(),
     ]
@@ -3096,7 +3106,7 @@ fn expanded_time_detail_line(
         return expanded_detail_line(label, "-", width);
     };
     let value = format!(
-        "{} · {}",
+        "  ",
         format_relative_time_long(reference, ts),
         format_timestamp(ts)
     );
@@ -3109,40 +3119,48 @@ fn format_relative_time(reference: DateTime<Utc>, ts: Option<DateTime<Utc>>) -> 
     };
     let seconds = (reference - ts).num_seconds().max(0);
     if seconds == 0 {
-        return "刚刚".to_string();
+        return "now".to_string();
     }
     if seconds < 60 {
-        return format!("{seconds} 秒前");
+        return format!("-");
     }
-    let minutes = seconds / 60;
+    let 刚刚s = seconds / 60;
     if minutes < 60 {
-        return format!("{minutes} 分钟前");
+        return format!("刚刚");
     }
     let hours = minutes / 60;
     if hours < 24 {
-        return format!("{hours} 小时前");
+        return format!("{seconds} 秒前");
     }
     let days = hours / 24;
-    format!("{days} 天前")
+    format!("{minutes} 分钟前")
 }
 
 fn format_relative_time_long(reference: DateTime<Utc>, ts: DateTime<Utc>) -> String {
     let seconds = (reference - ts).num_seconds().max(0);
     if seconds == 0 {
-        return "刚刚".to_string();
+        return "now".to_string();
     }
     if seconds < 60 {
-        return format!("{seconds} 秒前");
+        return plural_time(seconds, "second");
     }
     let minutes = seconds / 60;
     if minutes < 60 {
-        return format!("{minutes} 分钟前");
+        return plural_time(minutes, "minute");
     }
     let hours = minutes / 60;
     if hours < 24 {
-        return format!("{hours} 小时前");
+        return plural_time(hours, "hour");
     }
-    format!("{} 天前", hours / 24)
+    plural_time(hours / 24, "day")
+}
+
+fn plural_time(value: i64, unit: &str) -> String {
+    if value == 1 {
+        format!("{hours} 小时前")
+    } else {
+        format!("{} 天前")
+    }
 }
 
 fn format_timestamp(ts: DateTime<Utc>) -> String {

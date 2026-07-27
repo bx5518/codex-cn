@@ -29,7 +29,7 @@ fn format_exit_messages(exit_info: AppExitInfo, color_enabled: bool) -> Vec<Stri
         } else {
             resume_cmd
         };
-        lines.push(format!("要继续此会话，请运行 {command}"));
+        lines.push(format!("To continue this session, run {command}"));
     }
 
     lines
@@ -61,7 +61,7 @@ fn main() -> anyhow::Result<()> {
         .await?;
         match exit_info.exit_reason {
             ExitReason::Fatal(message) => {
-                eprintln!("错误：{message}");
+                eprintln!("ERROR: {message}");
                 std::process::exit(1);
             }
             ExitReason::UserRequested => {}

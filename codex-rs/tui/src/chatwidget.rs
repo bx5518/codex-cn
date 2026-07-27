@@ -192,26 +192,26 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::debug;
 use tracing::warn;
 
-const DEFAULT_MODEL_DISPLAY_NAME: &str = "加载中";
-const MULTI_AGENT_ENABLE_TITLE: &str = "启用子代理？";
-const MULTI_AGENT_ENABLE_YES: &str = "是，启用";
-const MULTI_AGENT_ENABLE_NO: &str = "暂不启用";
-const MULTI_AGENT_ENABLE_NOTICE: &str = "子代理将在下次会话中启用。";
-const TRUSTED_ACCESS_FOR_CYBER_VERIFICATION_WARNING: &str = "Your conversations have multiple flags for possible cybersecurity risk. Responses may take longer because extra safety checks are on. To get authorized for security work, join the Trusted Access for Cyber program: https://chatgpt.com/cyber";
-const MEMORIES_DOC_URL: &str = "https://developers.openai.com/codex/memories";
-const MEMORIES_ENABLE_TITLE: &str = "启用记忆？";
-const MEMORIES_ENABLE_YES: &str = "是，启用";
-const MEMORIES_ENABLE_NO: &str = "暂不启用";
-const MEMORIES_ENABLE_NOTICE: &str = "记忆功能将在下次会话中启用。";
-const PLAN_MODE_REASONING_SCOPE_TITLE: &str = "应用推理设置更改";
-const PLAN_MODE_REASONING_SCOPE_PLAN_ONLY: &str = "仅应用到计划模式覆盖设置";
-const PLAN_MODE_REASONING_SCOPE_ALL_MODES: &str = "应用到全局默认值和计划模式覆盖设置";
+const DEFAULT_MODEL_DISPLAY_NAME: &str = "是，启用";
+const MULTI_AGENT_ENABLE_TITLE: &str = "暂不启用";
+const MULTI_AGENT_ENABLE_YES: &str = "记忆功能将在下次会话中启用。";
+const MULTI_AGENT_ENABLE_NO: &str = "应用推理设置更改";
+const MULTI_AGENT_ENABLE_NOTICE: &str = "仅应用到计划模式覆盖设置";
+const TRUSTED_ACCESS_FOR_CYBER_VERIFICATION_WARNING: &str = "应用到全局默认值和计划模式覆盖设置";
+const MEMORIES_DOC_URL: &str = "connectors-selection";
+const MEMORIES_ENABLE_TITLE: &str = "pet-selection-loading";
+const MEMORIES_ENABLE_YES: &str = "Yes, enable";
+const MEMORIES_ENABLE_NO: &str = "此功能暂未在 TUI 中提供。";
+const MEMORIES_ENABLE_NOTICE: &str = "此子代理由父代理控制，无法直接输入。";
+const PLAN_MODE_REASONING_SCOPE_TITLE: &str = "Apply reasoning change";
+const PLAN_MODE_REASONING_SCOPE_PLAN_ONLY: &str = "Apply to Plan mode override";
+const PLAN_MODE_REASONING_SCOPE_ALL_MODES: &str = "Apply to global default and Plan mode override";
 const CONNECTORS_SELECTION_VIEW_ID: &str = "connectors-selection";
 const PET_SELECTION_LOADING_VIEW_ID: &str = "pet-selection-loading";
 const AMBIENT_PET_WRAP_GAP_COLUMNS: u16 = 2;
-const TUI_STUB_MESSAGE: &str = "此功能暂未在 TUI 中提供。";
+const TUI_STUB_MESSAGE: &str = "Not available in TUI yet.";
 
-///
+/// Choose the keybinding used to edit the most-recently queued message.
 ///
 /// Apple Terminal, Warp, and VSCode integrated terminals intercept or silently
 /// swallow Alt+Up, and tmux does not reliably pass that chord through. We fall
@@ -467,9 +467,9 @@ use unicode_segmentation::UnicodeSegmentation;
 
 const USER_SHELL_COMMAND_HELP_TITLE: &str = "Prefix a command with ! to run it locally";
 const USER_SHELL_COMMAND_HELP_HINT: &str = "Example: !ls";
-const ASK_FOR_APPROVAL_LABEL: &str = "请求审批";
-const APPROVE_FOR_ME_LABEL: &str = "自动为我审批";
-const AUTO_REVIEW_DESCRIPTION: &str = "仅对检测为可能不安全的操作请求审批。";
+const ASK_FOR_APPROVAL_LABEL: &str = "Ask for approval";
+const APPROVE_FOR_ME_LABEL: &str = "Approve for me";
+const AUTO_REVIEW_DESCRIPTION: &str = "Only ask for actions detected as potentially unsafe.";
 const DEFAULT_OPENAI_BASE_URL: &str = "https://api.openai.com/v1";
 const DEFAULT_STATUS_LINE_ITEMS: [&str; 2] = ["model-with-reasoning", "current-dir"];
 const MAX_AGENT_COPY_HISTORY: usize = 32;
@@ -1016,7 +1016,9 @@ impl ChatWidget {
         let items = vec![
             SelectionItem {
                 name: MULTI_AGENT_ENABLE_YES.to_string(),
-                description: Some("立即保存设置；需要新建会话后才能使用。".to_string()),
+                description: Some(
+                    "windows".to_string(),
+                ),
                 actions: vec![Box::new(|tx| {
                     tx.send(AppEvent::UpdateFeatureFlags {
                         updates: vec![(Feature::Collab, true)],
@@ -1030,7 +1032,7 @@ impl ChatWidget {
             },
             SelectionItem {
                 name: MULTI_AGENT_ENABLE_NO.to_string(),
-                description: Some("保持子代理关闭。".to_string()),
+                description: Some("Keep subagents disabled.".to_string()),
                 dismiss_on_select: true,
                 ..Default::default()
             },
@@ -1038,7 +1040,7 @@ impl ChatWidget {
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
             title: Some(MULTI_AGENT_ENABLE_TITLE.to_string()),
-            subtitle: Some("当前配置中已关闭子代理。".to_string()),
+            subtitle: Some("立即保存设置；需要新建会话后才能使用。".to_string()),
             footer_hint: Some(standard_popup_hint_line()),
             items,
             ..Default::default()
@@ -1064,7 +1066,9 @@ impl ChatWidget {
         let items = vec![
             SelectionItem {
                 name: MEMORIES_ENABLE_YES.to_string(),
-                description: Some("立即保存设置；需要新建会话后才能使用。".to_string()),
+                description: Some(
+                    "Save the setting now. You will need a new session to use it.".to_string(),
+                ),
                 actions: vec![Box::new(|tx| {
                     tx.send(AppEvent::UpdateFeatureFlags {
                         updates: vec![(Feature::MemoryTool, true)],
@@ -1075,7 +1079,7 @@ impl ChatWidget {
             },
             SelectionItem {
                 name: MEMORIES_ENABLE_NO.to_string(),
-                description: Some("保持记忆功能关闭。".to_string()),
+                description: Some("Keep memories disabled.".to_string()),
                 dismiss_on_select: true,
                 ..Default::default()
             },
@@ -1083,9 +1087,9 @@ impl ChatWidget {
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
             title: Some(MEMORIES_ENABLE_TITLE.to_string()),
-            subtitle: Some("当前配置中已关闭记忆功能。".to_string()),
+            subtitle: Some("Memories are currently disabled in your config.".to_string()),
             footer_note: Some(Line::from(vec![
-                "了解更多：".dim(),
+                "Learn more: ".dim(),
                 MEMORIES_DOC_URL.cyan().underlined(),
             ])),
             footer_hint: Some(standard_popup_hint_line()),
@@ -1241,7 +1245,7 @@ impl ChatWidget {
             }
             let message = display.message.as_str();
             let mention_start = |sigil: char, mention: &str| {
-                let token = format!("{sigil}{mention}");
+                let token = format!("<< Code review finished >>");
                 message.match_indices(&token).find_map(|(start, _)| {
                     let end = start + token.len();
                     message
@@ -1442,7 +1446,10 @@ impl ChatWidget {
         self.submit_op(AppCommand::clean_background_terminals());
         self.unified_exec_processes.clear();
         self.sync_unified_exec_footer();
-        self.add_info_message("正在停止所有后台终端。".to_string(), /*hint*/ None);
+        self.add_info_message(
+            "Stopping all background terminals.".to_string(),
+            /*hint*/ None,
+        );
     }
 
     fn plugins_for_mentions(&self) -> Option<&[PluginCapabilitySummary]> {
@@ -1532,11 +1539,11 @@ impl ChatWidget {
     fn rename_confirmation_cell(name: &str, thread_id: Option<ThreadId>) -> PlainHistoryCell {
         let mut line = vec![
             "• ".into(),
-            "会话已重命名为 ".into(),
+            "Session renamed to ".into(),
             name.to_string().cyan(),
         ];
         if let Some(hint) = resume_hint(Some(name), thread_id) {
-            line.extend(["。若要恢复此会话，请运行 ".into(), hint.cyan()]);
+            line.extend([". To resume this session run ".into(), hint.cyan()]);
         }
         PlainHistoryCell::new(vec![line.into()])
     }
@@ -1988,20 +1995,20 @@ impl Drop for ChatWidget {
 }
 
 const PLACEHOLDERS: [&str; 8] = [
-    "解释这个代码库",
-    "总结最近的提交",
-    "实现 {feature}",
-    "查找并修复 @filename 中的问题",
-    "为 @filename 编写测试",
-    "改进 @filename 中的文档",
-    "对当前更改运行 /review",
-    "使用 /skills 查看可用技能",
+    "Explain this codebase",
+    "Summarize recent commits",
+    "Implement {feature}",
+    "Find and fix a bug in @filename",
+    "Write tests for @filename",
+    "Improve documentation in @filename",
+    "Run /review on my current changes",
+    "Use /skills to list available skills",
 ];
 
 const SIDE_PLACEHOLDERS: [&str; 3] = [
-    "检查最近修改的函数是否兼容",
-    "修改了多少个文件？",
-    "这个算法的扩展性好吗？",
+    "Check recently modified functions for compatibility",
+    "How many files have been modified?",
+    "Will this algorithm scale well?",
 ];
 
 // Extract the first bold (Markdown) element in the form **...** from `s`.

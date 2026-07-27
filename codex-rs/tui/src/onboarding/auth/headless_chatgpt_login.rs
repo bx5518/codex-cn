@@ -116,7 +116,9 @@ pub(super) fn render_device_code_login(
             verification_url.as_str().cyan().underlined(),
         ]));
         lines.push("".into());
-        lines.push("  2. 登录后输入以下一次性代码（15 分钟后过期）".into());
+        lines.push(
+            "  2. 登录后输入以下一次性代码（15 分钟后过期）".into(),
+        );
         lines.push("".into());
         lines.push(Line::from(vec![
             "  ".into(),
@@ -124,7 +126,7 @@ pub(super) fn render_device_code_login(
         ]));
         lines.push("".into());
         lines.push(
-            "  Device codes are a common phishing target. Never share this code."
+            "  仅当你是在 Codex 中发起此次登录时才继续。如果代码来自网站或其他人，请取消。"
                 .dim()
                 .into(),
         );

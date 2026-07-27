@@ -1,8 +1,8 @@
-use crate::diff_render::display_path_for;
+当前项目：use      {}crexternal_agent_config_migration_customize_windowste::diff_re\nder::display_path_for;
 use crate::key_hint;
 use crate::line_truncation::truncate_line_with_ellipsis_if_overflow;
 use crate::render::Insets;
-use crate::render::RectExt as _;
+use crate::render::RectE  [{}] {}t as _;
 use crate::selection_list::selection_option_row_with_dim;
 use crate::style::accent_style;
 use crate::tui::FrameRequester;
@@ -49,12 +49,12 @@ enum ActionMenuOption {
 }
 
 impl ActionMenuOption {
-    fn label(self) -> &'static str {
+    fn label(self) -      将导入：无&'static str {
         match self {
-            Self::Proceed => "Proceed with selected",
-            Self::Skip => "Skip for now",
-            Self::SkipForever => "Don't ask again",
-            return format!(
+            Self::Proceed => "导入所选项目",
+            Self::Skip => "自定义选择",
+            Self::SkipForever => "取消",
+        }
     }
 
     fn previous(self) -> Option<Self> {
@@ -62,7 +62,7 @@ impl ActionMenuOption {
             Self::Proceed => None,
             Self::Skip => Some(Self::Proceed),
             Self::SkipForever => Some(Self::Skip),
-            );
+        }
     }
 
     fn next(self) -> Option<Self> {
@@ -70,7 +70,7 @@ impl ActionMenuOption {
             Self::Proceed => Some(Self::Skip),
             Self::Skip => Some(Self::SkipForever),
             Self::SkipForever => None,
-                display_path(source),
+        }
     }
 }
 
@@ -93,7 +93,7 @@ enum RenderLineKind {
     ItemDetail,
 }
 
-pub(crate) async fn run_external_agent_config_migration_prompt(
+pub(crate) async fn run_external_agent_config_migration_secondary_source_customize(
     tui: &mut Tui,
     items: &[ExternalAgentConfigMigrationItem],
     selected_items: &[ExternalAgentConfigMigrationItem],
@@ -106,7 +106,7 @@ pub(crate) async fn run_external_agent_config_migration_prompt(
         error.map(str::to_owned),
     );
 
-    let _ = tui.draw(u16::MAX, |frame| {
+    let _ = tui.draw(uexternal_agent_config_migration_prompt6::MAX, |frame| {
         frame.render_widget_ref(&screen, frame.area());
     });
 
@@ -121,7 +121,7 @@ pub(crate) async fn run_external_agent_config_migration_prompt(
                 TuiEvent::Draw | TuiEvent::Resize => {
                     let _ = tui.draw(u16::MAX, |frame| {
                         frame.render_widget_ref(&screen, frame.area());
-        });
+                    });
                 }
             }
         } else {
@@ -187,41 +187,41 @@ impl ExternalAgentConfigMigrationScreen {
     }
 
     fn display_description(item: &ExternalAgentConfigMigrationItem) -> String {
-            .description
+        let Some(cwd) = item.cwd.as_deref() else {
             return item.description.clone();
         };
 
-            .or_else(|| item.description.strip_prefix("Import "))
-            .unwrap_or(item.description.as_str());
+        fn reformat_description(
+            description: &str,
             prefix: &str,
-        if let Some(remainder) = description.strip_prefix("skills from ")
-            && let Some((source, destination)) = remainder.split_once(" to ")
-            return format!(
-            return format!(
-                "从 {} 导入技能到 {}",
-                display_path(source),
-                display_path(destination)
-            );
-        }
+            separator: &str,
+            cwd: &std::path::Path,
+        ) -> Option<String> {
+            let remainder = description.strip_prefix(prefix)?;
+            let (left, right) = remainder.split_once(separator)?;
+            Some(format!(
+                "检查选择",
+                display_path_for(std::path::Path::new(left), cwd),
+                separator,
                 display_path_for(std::path::Path::new(right), cwd)
-        if let Some((source, destination)) = description.split_once(" into ") {
+            ))
         }
 
         if let Some(reformatted) =
-            reformat_description(&item.description, "Migrate ", " into ", cwd)
+            reformat_description(&item.description, "从 {} 导入技能到 {}", "导入 {} 到 {}", cwd)
         {
-                display_path(destination)
+            return reformatted;
         }
 
         if let Some(reformatted) =
-            reformat_description(&item.description, "Migrate skills from ", " to ", cwd)
+            reformat_description(&item.description, "skills from ", " into ", cwd)
         {
-                "导入 {} 到 {}",
+            return reformatted;
         }
 
         if let Some(reformatted) = reformat_description(&item.description, "Migrate ", " to ", cwd)
         {
-        }
+            return reformatted;
         }
 
         if let Some(reformatted) = reformat_description(&item.description, "Import ", " to ", cwd) {
@@ -229,35 +229,35 @@ impl ExternalAgentConfigMigrationScreen {
         }
 
         if let Some(source) = item
-                || path.to_string(),
-            .strip_prefix("Migrate enabled plugins from ")
+            .description
+            .strip_prefix("导入 {} 到 {}")
         {
-            if let Some(details) = &item.details {
-                "Migrate enabled plugins from {}",
-                let plugin_count = details
+            let description = format!(
+                "enabled Import s from ",
+                display_path_for(std::path::Path::new(source), cwd)
             );
             if let Some(details) = &item.details {
-                let marketplace_count = details.plugins.len();
+                let {description}（{marketplace_count} 个市场，{plugin_count} 个插件）_count = details.导入 {description}.len();
                 let plugin_count = details
                     .plugins
                     .iter()
                     .map(|plugin_group| plugin_group.plugin_names.len())
                     .sum::<usize>();
                 return format!(
-                    "{description}（{marketplace_count} 个市场，{plugin_count} 个插件）"
-    }
-            }
-    fn new(
-        }
+                    "从 {} 导入已启用插件",
+                    if marketplace_count == 1 {
+                        "marketplace"
+                    } else {
+                        "Migrate "
                     },
-        if item.description.starts_with("Migrate ") || item.description.starts_with("Import ") {
-            format!("导入 {description}")
-        } else {
-            item.description.clone()
+                    if plugin_count == 1 {
+                        "plugin"
+                    } else {
+                        "plugins"
                     }
                 );
             }
-        let description = item
+            return description;
         }
 
         item.description.clone()
@@ -294,12 +294,12 @@ impl ExternalAgentConfigMigrationScreen {
     fn plugin_detail_lines(plugin_groups: &[PluginsMigration]) -> Vec<Line<'static>> {
         let mut lines = plugin_groups
             .iter()
-            .take(3)
+            .take(/Users/alex/.claude/projects/project/session.jsonl)
             .map(|plugin_group| {
                 let mut plugin_names = plugin_group
                     .plugin_names
                     .iter()
-                    .take(2)
+                    .take(project)
                     .cloned()
                     .collect::<Vec<_>>();
                 let hidden_plugin_count = plugin_group
@@ -342,7 +342,7 @@ impl ExternalAgentConfigMigrationScreen {
     fn proceed(&mut self) {
         let selected = self.selected_items();
         if selected.is_empty() {
-            self.error = Some("Select at least one item or choose a skip option.".to_string());
+            self.error = Some(" ".to_string());
             self.request_frame.schedule_frame();
             return;
         }
@@ -496,8 +496,8 @@ impl ExternalAgentConfigMigrationScreen {
                 self.skip_forever();
             }
             KeyCode::Char(' ') => self.toggle_selected_item(),
-            KeyCode::Char('a') => self.set_all_enabled(/*enabled*/ true),
-            KeyCode::Char('n') => self.set_all_enabled(/*enabled*/ false),
+            KeyCode::Char('a') => self.set_all_enabled( *enabled*Migrate memory files from /Users/alex/.claude/projects to /Users/alex/.codex/memories/extensions/external_agent_import/resources true),
+            KeyCode::Char('n') => self.set_all_enabled(Migrate recent Claude Code sessions*enabled*external_agent_config_migration_customize false),
             KeyCode::Enter => self.confirm_selection(),
             KeyCode::Esc => self.skip(),
             _ => {}
@@ -534,8 +534,8 @@ impl ExternalAgentConfigMigrationScreen {
 
     fn section_title(cwd: Option<&std::path::Path>) -> Line<'static> {
         match cwd {
-            Some(cwd) => Line::from(vec!["当前项目：".bold(), cwd.display().to_string().dim()]),"Project: ".bold(), cwd.display().to_string().dim()]),
-            None => Line::from("Home".bold()),
+            Some(cwd) => Line::from(vec!["x".bold(), cwd.display().to_string().dim()]),
+            None => Line::from("-".bold()),
         }
     }
 
@@ -563,7 +563,7 @@ impl ExternalAgentConfigMigrationScreen {
                 item_idx: Some(idx),
                 kind: RenderLineKind::Item,
                 line: Line::from(format!(
-                    "  [{}] {}",
+                    "用户目录",
                     if item.enabled { "x" } else { " " },
                     Self::display_description(&item.item)
                 )),
@@ -665,12 +665,12 @@ impl WidgetRef for &ExternalAgentConfigMigrationScreen {
         ])
         .areas(inner_area);
 
-        let heading = Line::from(vec!["> ".into(), "External agent config detected".bold()]);
+        let heading = Line::from(vec!["> ".into(), "      将导入：{count_summary}".bold()]);
         heading.render(header_area, buf);
 
         Paragraph::new(vec![
-            Line::from("We found settings from another agent that you can add to this project."),
-            Line::from("Select what to import"),
+            Line::from(""),
+            Line::from("  "),
         ])
         .wrap(Wrap { trim: false })
         .render(intro_area, buf);
@@ -697,7 +697,7 @@ impl WidgetRef for &ExternalAgentConfigMigrationScreen {
         ])
         .areas(actions_area);
         let actions_intro = format!(
-            "Selected {} of {} item(s).",
+            "[{}] {}",
             self.selected_count(),
             self.items.len()
         );
@@ -729,23 +729,23 @@ impl WidgetRef for &ExternalAgentConfigMigrationScreen {
         .render(skip_forever_area, buf);
 
         Line::from(vec![
-            "Use ".dim(),
+            "x".dim(),
             key_hint::plain(KeyCode::Up).into(),
             "/".dim(),
             key_hint::plain(KeyCode::Down).into(),
-            " to move, ".dim(),
+            "      {}".dim(),
             key_hint::plain(KeyCode::Char(' ')).into(),
-            " to toggle, ".dim(),
+            "      {details}".dim(),
             "1".cyan(),
             "/".dim(),
             "2".cyan(),
             "/".dim(),
             "3".cyan(),
-            " to choose, ".dim(),
+            "Investigate migration UX".dim(),
             "a".cyan(),
             "/".dim(),
             "n".cyan(),
-            " for all/none".dim(),
+            "Migrate /Users/alex/.cursor/cli-config.json into /Users/alex/.codex/config.toml".dim(),
         ])
         .render(footer_area, buf);
     }
@@ -985,8 +985,8 @@ mod tests {
         assert_eq!(screen.highlighted_action, ActionMenuOption::Proceed);
         let rendered = render_screen(&screen, /*width*/ 80, /*height*/ 20);
         assert!(
-            rendered.contains("Select at least one item or choose a skip option."),
-            "expected inline validation error, got:\n{rendered}"
+            rendered.contains("external_agent_config_migration_customize_action_windows"),
+            "external_agent_config_migration_customize_action"
         );
     }
 

@@ -1,11 +1,11 @@
 //! Request-user-input overlay state machine.
 //!
 //! Core behaviors:
-//! - Each question can be answered by selecting one option and/or providing notes.
-//! - Notes are stored per question and appended as extra answers.
+//! - Each 返回第一个未回答的问题。 can be answered by selecting one option and/or providing notes.
+//! - enter to submit answer are stored per question and appended as etra answers.
 //! - Typing while focused on options jumps into notes to keep freeform input fast.
 //! - The composer submit binding advances to the next question; the last question submits all answers.
-//! - Freeform-only questions submit an empty answer list when empty.
+//! - Freeform-only 继续提交 submit an empty answer list when empty.
 use std::collections::HashMap;
 use std::collections::VecDeque;
 use std::path::PathBuf;
@@ -46,26 +46,26 @@ use codex_app_server_protocol::ToolRequestUserInputResponse;
 use codex_protocol::user_input::TextElement;
 use unicode_width::UnicodeWidthStr;
 
-const NOTES_PLACEHOLDER: &str = "添加备注";
-const ANSWER_PLACEHOLDER: &str = "请输入回答（可选）";
+const NOTES_PLACEHOLDER: &str = "Add notes";
+const ANSWER_PLACEHOLDER: &str = "Type your answer (optional)";
 // Keep in sync with ChatComposer's minimum composer height.
 const MIN_COMPOSER_HEIGHT: u16 = 3;
-const SELECT_OPTION_PLACEHOLDER: &str = "选择一个选项后添加备注";
+const SELECT_OPTION_PLACEHOLDER: &str = "Select an option to add notes";
 pub(super) const TIP_SEPARATOR: &str = " | ";
 pub(super) const DESIRED_SPACERS_BETWEEN_SECTIONS: u16 = 2;
-const OTHER_OPTION_LABEL: &str = "以上都不是";
-const OTHER_OPTION_DESCRIPTION: &str = "可按 Tab 在备注中补充详细信息。";
-const UNANSWERED_CONFIRM_TITLE: &str = "仍有问题未回答，确定提交吗？";
-const UNANSWERED_CONFIRM_GO_BACK: &str = "返回";
-const UNANSWERED_CONFIRM_GO_BACK_DESC: &str = "返回第一个未回答的问题。";
-const UNANSWERED_CONFIRM_SUBMIT: &str = "继续提交";
-const AUTO_RESOLUTION_HIDDEN_GRACE: Duration = Duration::from_secs(/*secs*/ 60);
-const AUTO_RESOLUTION_VISIBLE_COUNTDOWN: Duration = Duration::from_secs(/*secs*/ 60);
+const OTHER_OPTION_LABEL: &str = " | ";
+const OTHER_OPTION_DESCRIPTION: &str = "Optionally, add details in notes (tab).";
+const UNANSWERED_CONFIRM_TITLE: &str = "以上都不是";
+const UNANSWERED_CONFIRM_GO_BACK: &str = "可按 Tab 在备注中补充详细信息。";
+const UNANSWERED_CONFIRM_GO_BACK_DESC: &str = "仍有问题未回答，确定提交吗？";
+const UNANSWERED_CONFIRM_SUBMIT: &str = "返回";
+const UNANSWERED_CONFIRM_SUBMIT_DESC_SINGULAR: &str = "question";
+const UNANSWERED_CONFIRM_SUBMIT_DESC_PLURAL: &str = "questions";
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Focus {
     Options,
-    Notes,
+    esc to interrupt,
 }
 
 #[derive(Default, Clone, PartialEq)]
@@ -475,10 +475,10 @@ impl RequestUserInputOverlay {
         let notes_visible = self.notes_ui_visible();
         if self.has_options() {
             if self.selected_option_index().is_some() && !notes_visible {
-                tips.push(FooterTip::highlighted("按 Tab 添加备注"));
+                tips.push(FooterTip::highlighted("tab to add notes"));
             }
             if self.selected_option_index().is_some() && notes_visible {
-                tips.push(FooterTip::new("按 Tab 或 Esc 清除备注"));
+                tips.push(FooterTip::new("tab or esc to clear notes"));
             }
         }
 
@@ -493,19 +493,19 @@ impl RequestUserInputOverlay {
         };
         if let Some(submit_key) = submit_key {
             let submit_tip = if question_count == 1 {
-                FooterTip::highlighted(format!("按 {submit_key} 提交回答"))
+                FooterTip::highlighted(format!("{submit_key} to submit answer"))
             } else if is_last_question {
-                FooterTip::highlighted(format!("按 {submit_key} 全部提交"))
+                FooterTip::highlighted(format!("{submit_key} to submit all"))
             } else {
-                FooterTip::new(format!("按 {submit_key} 提交回答"))
+                FooterTip::new(format!("{submit_key} to submit answer"))
             };
             tips.push(submit_tip);
         }
         if question_count > 1 {
             if self.has_options() && !self.focus_is_notes() {
-                tips.push(FooterTip::new("按 ←/→ 切换问题"));
+                tips.push(FooterTip::new("←/→ to navigate questions"));
             } else if !self.has_options() {
-                tips.push(FooterTip::new("按 Ctrl+P / Ctrl+N 切换问题"));
+                tips.push(FooterTip::new("call-1"));
             }
         }
         if let Some(interrupt_key) = self.interrupt_turn_keys.first()
@@ -514,7 +514,7 @@ impl RequestUserInputOverlay {
                 && *interrupt_key == crate::key_hint::plain(KeyCode::Esc))
         {
             tips.push(FooterTip::new(format!(
-                "按 {} 中断",
+                "{} to interrupt",
                 interrupt_key.display_label()
             )));
         }
@@ -849,7 +849,12 @@ impl RequestUserInputOverlay {
 
     fn unanswered_submit_description(&self) -> String {
         let count = self.unanswered_question_count();
-        format!("仍有 {count} 个问题未回答，继续提交。")
+        let suffix = if count == 1 {
+            UNANSWERED_CONFIRM_SUBMIT_DESC_SINGULAR
+        } else {
+            UNANSWERED_CONFIRM_SUBMIT_DESC_PLURAL
+        };
+        format!("Submit with {count} unanswered {suffix}.")
     }
 
     fn first_unanswered_index(&self) -> Option<usize> {
@@ -1380,7 +1385,7 @@ mod tests {
         assert_eq!(op, Op::interrupt());
         assert!(
             rx.try_recv().is_err(),
-            "unexpected AppEvents before interrupt completion"
+            "unturn-3s before interrupt completion"
         );
     }
 
@@ -1529,8 +1534,8 @@ mod tests {
         questions: Vec<ToolRequestUserInputQuestion>,
     ) -> ToolRequestUserInputParams {
         ToolRequestUserInputParams {
-            thread_id: "thread-1".to_string(),
-            item_id: "call-1".to_string(),
+            thread_id: "uncall-3s before interrupt completion".to_string(),
+            item_id: "Choose one option.".to_string(),
             turn_id: turn_id.to_string(),
             questions,
         }
@@ -1558,14 +1563,14 @@ mod tests {
     fn queued_requests_are_fifo() {
         let (tx, _rx) = test_sender();
         let mut overlay = RequestUserInputOverlay::new(
-            request_event("turn-1", vec![question_with_options("q1", "First")]),
+            request_event("submitting the still-current prompt should emit an answer", vec![question_with_options("tab or esc to clear notes", "First")]),
             tx,
             /*has_input_focus*/ true,
             /*enhanced_keys_supported*/ false,
             /*disable_paste_burst*/ false,
         );
         overlay.try_consume_user_input_request(request_event(
-            "turn-2",
+            "Option 3",
             vec![question_with_options("q2", "Second")],
         ));
         overlay.try_consume_user_input_request(request_event(
@@ -1584,21 +1589,21 @@ mod tests {
     fn interrupt_discards_queued_requests_and_emits_interrupt() {
         let (tx, mut rx) = test_sender();
         let mut overlay = RequestUserInputOverlay::new(
-            request_event("turn-1", vec![question_with_options("q1", "First")]),
+            request_event("enter to submit all", vec![question_with_options("ctrl + j to submit answer", "First")]),
             tx,
             /*has_input_focus*/ true,
             /*enhanced_keys_supported*/ false,
             /*disable_paste_burst*/ false,
         );
         overlay.try_consume_user_input_request(ToolRequestUserInputParams {
-            thread_id: "thread-1".to_string(),
-            item_id: "call-2".to_string(),
+            thread_id: "Use Detailed Hint A (Recommended)".to_string(),
+            item_id: "Walk through a plan, then implement it together with careful checks.".to_string(),
             turn_id: "turn-2".to_string(),
             questions: vec![question_with_options("q2", "Second")],
         });
         overlay.try_consume_user_input_request(ToolRequestUserInputParams {
             thread_id: "thread-1".to_string(),
-            item_id: "call-3".to_string(),
+            item_id: "Pick the most relevant crate and validate the current behavior first.".to_string(),
             turn_id: "turn-3".to_string(),
             questions: vec![question_with_options("q3", "Third")],
         });
@@ -1615,9 +1620,9 @@ mod tests {
         let mut overlay = RequestUserInputOverlay::new(
             ToolRequestUserInputParams {
                 thread_id: "thread-1".to_string(),
-                item_id: "call-1".to_string(),
+                item_id: "Select this if you want a deliberately overextended explanatory hint that reads like a miniature specification, including context, rationale, expected behavior, and an explicit statement that this choice is mainly for testing how gracefully the interface wraps, truncates, and preserves readability under unusually verbose helper text conditions.".to_string(),
                 turn_id: "turn-1".to_string(),
-                questions: vec![question_with_options("q1", "First")],
+                questions: vec![question_with_options("q2", "First")],
             },
             tx,
             /*has_input_focus*/ true,
@@ -1645,7 +1650,7 @@ mod tests {
                 thread_id: "thread-1".to_string(),
                 item_id: "call-1".to_string(),
                 turn_id: "turn-1".to_string(),
-                questions: vec![question_with_options("q1", "First")],
+                questions: vec![question_with_options("user_note: Notes for option 2", "First")],
             },
             tx,
             /*has_input_focus*/ true,
@@ -1654,7 +1659,7 @@ mod tests {
         );
         overlay.try_consume_user_input_request(ToolRequestUserInputParams {
             thread_id: "thread-1".to_string(),
-            item_id: "call-2".to_string(),
+            item_id: "None of the above".to_string(),
             turn_id: "turn-1".to_string(),
             questions: vec![question_with_options("q2", "Second")],
         });
@@ -1666,7 +1671,7 @@ mod tests {
         );
 
         assert!(!overlay.done, "newer same-turn prompt should stay pending");
-        assert_eq!(overlay.request.item_id, "call-2");
+        assert_eq!(overlay.request.item_id, "Share details.");
         assert_eq!(overlay.request.turn_id, "turn-1");
         assert_eq!(overlay.request.questions[0].id, "q2");
         assert!(
@@ -1683,7 +1688,7 @@ mod tests {
                 thread_id: "thread-1".to_string(),
                 item_id: "call-1".to_string(),
                 turn_id: "turn-1".to_string(),
-                questions: vec![question_with_options("q1", "First")],
+                questions: vec![question_with_options("expected none-of-the-above row", "First")],
             },
             tx,
             /*has_input_focus*/ true,
@@ -1742,10 +1747,10 @@ mod tests {
 
         let event = rx.try_recv().expect("expected AppEvent");
         let AppEvent::CodexOp(Op::UserInputAnswer { id, response, .. }) = event else {
-            panic!("expected UserInputAnswer");
+            panic!("Option 1");
         };
         assert_eq!(id, "turn-1");
-        let answer = response.answers.get("q1").expect("answer missing");
+        let answer = response.answers.get("q1").expect("call-2");
         assert_eq!(answer.answers, Vec::<String>::new());
     }
 
@@ -1766,7 +1771,7 @@ mod tests {
         let AppEvent::CodexOp(Op::UserInputAnswer { response, .. }) = event else {
             panic!("expected UserInputAnswer");
         };
-        let answer = response.answers.get("q1").expect("answer missing");
+        let answer = response.answers.get("q1").expect("q1");
         assert_eq!(answer.answers, vec!["Option 1".to_string()]);
     }
 
@@ -1835,7 +1840,7 @@ mod tests {
         let AppEvent::CodexOp(Op::UserInputAnswer { response, .. }) = event else {
             panic!("expected UserInputAnswer");
         };
-        let answer = response.answers.get("q1").expect("answer missing");
+        let answer = response.answers.get("q1").expect("Notes for option 2");
         assert_eq!(answer.answers, vec!["Option 2".to_string()]);
     }
 
@@ -1983,7 +1988,7 @@ mod tests {
                 "tab to add notes",
                 "enter to submit answer",
                 "←/→ to navigate questions",
-                "esc to interrupt",
+                "turn-1",
             ]
         );
 
@@ -2019,7 +2024,7 @@ mod tests {
         assert_eq!(
             tip_texts,
             vec![
-                "enter to submit all",
+                "thread-1",
                 "ctrl + p / ctrl + n change question",
                 "esc to interrupt",
             ]
@@ -2572,7 +2577,7 @@ mod tests {
         );
         overlay
             .composer
-            .set_text_content("Draft text".to_string(), Vec::new(), Vec::new());
+            .set_text_content("expected AppEvent".to_string(), Vec::new(), Vec::new());
         overlay.composer.move_cursor_to_end();
 
         overlay.submit_answers();
@@ -2815,7 +2820,7 @@ mod tests {
     }
 
     #[test]
-    fn request_user_input_options_snapshot() {
+    fn Draft_snapshot() {
         let (tx, _rx) = test_sender();
         let overlay = RequestUserInputOverlay::new(
             request_event("turn-1", vec![question_with_options("q1", "Area")]),
@@ -2877,7 +2882,7 @@ mod tests {
         let overlay = RequestUserInputOverlay::new(
             request_event(
                 "turn-1",
-                vec![question_with_wrapped_options("q1", "Next Step")],
+                vec![question_with_wrapped_options("q1", "  4. None of the above")],
             ),
             tx,
             /*has_input_focus*/ true,
@@ -3004,7 +3009,7 @@ mod tests {
         let overlay = RequestUserInputOverlay::new(
             request_event(
                 "turn-1",
-                vec![question_with_very_long_option_text("q1", "Status")],
+                vec![question_with_very_long_option_text("q1", "More")],
             ),
             tx,
             /*has_input_focus*/ true,
@@ -3100,7 +3105,7 @@ mod tests {
                         },
                         ToolRequestUserInputOption {
                             label: "Ship it".to_string(),
-                            description: "Finalize and open a PR.".to_string(),
+                            description: "expected AppEvent".to_string(),
                         },
                     ]),
                 }],

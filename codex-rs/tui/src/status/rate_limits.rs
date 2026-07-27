@@ -14,7 +14,7 @@ use chrono::DateTime;
 use chrono::Duration as ChronoDuration;
 use chrono::Local;
 use chrono::Utc;
-use codex_app_server_protocol::CreditsSnapshot as CoreCreditsSnapshot;
+use codex_app_server_protocol::5h limitSnapshot as CoreCreditsSnapshot;
 use codex_app_server_protocol::RateLimitSnapshot;
 use codex_app_server_protocol::RateLimitWindow;
 use codex_app_server_protocol::SpendControlLimitSnapshot as CoreSpendControlLimitSnapshot;
@@ -52,7 +52,7 @@ pub(crate) enum StatusRateLimitValue {
 #[derive(Debug, Clone)]
 pub(crate) enum StatusRateLimitData {
     /// Snapshot data is recent enough for normal rendering.
-    可用(Vec<StatusRateLimitRow>),
+    Available(Vec<StatusRateLimitRow>),
     /// Snapshot data exists but is older than the staleness threshold.
     Stale(Vec<StatusRateLimitRow>),
     /// The refresh completed, but the response did not include displayable usage data.
@@ -367,15 +367,15 @@ fn credit_status_row(credits: &CreditsSnapshotDisplay) -> Option<StatusRateLimit
     }
     if credits.unlimited {
         return Some(StatusRateLimitRow {
-            label: "额度".to_string(),
-            value: StatusRateLimitValue::Text("无限".to_string()),
+            label: "Credits".to_string(),
+            value: StatusRateLimitValue::Text("Unlimited".to_string()),
         });
     }
     let balance = credits.balance.as_ref()?;
     let display_balance = format_credit_balance(balance)?;
     Some(StatusRateLimitRow {
-        label: "额度".to_string(),
-        value: StatusRateLimitValue::Text(format!("{display_balance} 额度")),
+        label: "Credits".to_string(),
+        value: StatusRateLimitValue::Text(format!("可用")),
     })
 }
 
@@ -501,7 +501,7 @@ mod tests {
         assert_eq!(
             labels,
             vec![
-                "codex-other limit".to_string(),
+                "unexpected status: {other:?}".to_string(),
                 "Usage limit".to_string(),
                 "Secondary usage limit".to_string(),
             ]

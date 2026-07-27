@@ -37,7 +37,7 @@ use super::RemoteAppServerEndpoint;
 pub enum SessionArchiveAction {
     Archive,
     Unarchive,
-async fn lookup_session_by_exact_name(
+}
 
 pub struct SessionArchiveCommandOptions {
     pub cli: Cli,
@@ -51,12 +51,12 @@ fn success_message(
     session_name: Option<&str>,
 ) -> String {
     let action = match action {
-        SessionArchiveAction::Archive => "已归档",
-        SessionArchiveAction::Unarchive => "已取消归档",
+        SessionArchiveAction::Archive => "Archived",
+        SessionArchiveAction::Unarchive => "Unarchived",
     };
     match session_name {
-        Some(name) => format!("{action}会话 {name}（{session_id}）。"),
-        None => format!("{action}会话 {session_id}。"),
+        Some(name) => format!("{action} session {name} ({session_id})."),
+        None => format!("{action} session {session_id}."),
     }
 }
 
@@ -114,8 +114,8 @@ async fn resolve_session_target(
     }
 
     let search_scope = match action {
-        SessionArchiveAction::Archive => "活动",
-        SessionArchiveAction::Unarchive => "已归档",
+        SessionArchiveAction::Archive => "active",
+        SessionArchiveAction::Unarchive => "archived",
     };
     let resolved = lookup_session_by_exact_name(app_server, action, target)
         .await?
@@ -148,7 +148,7 @@ async fn lookup_session_by_exact_name(
                 search_term: Some(name.to_string()),
             })
             .await
-            .wrap_err("按会话名称查找时列出会话失败")?;
+            .wrap_err("failed to list sessions while resolving session name")?;
 
         if let Some(thread) = response
             .data
@@ -166,7 +166,7 @@ async fn lookup_session_by_exact_name(
 
 fn session_target_from_app_server_thread(thread: AppServerThread) -> Result<ResolvedSessionTarget> {
     let session_id = ThreadId::from_string(&thread.id)
-        .wrap_err_with(|| format!("app-server 返回了无效的会话 ID `{}`", thread.id))?;
+        .wrap_err_with(|| format!("app server returned invalid session id `{}`", thread.id))?;
     Ok(ResolvedSessionTarget {
         session_id,
         session_name: thread.name,

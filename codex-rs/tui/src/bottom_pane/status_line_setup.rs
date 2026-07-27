@@ -60,15 +60,15 @@ pub(crate) enum StatusLineItem {
     /// Model name with reasoning level suffix.
     ModelWithReasoning,
 
-    /// Current reasoning level.
+    /// 模型.
     Reasoning,
 
-    /// Current working directory path.
+    /// 模型和推理等级 path.
     CurrentDir,
 
     /// Project root directory (if detected).
     #[strum(
-        to_string = "project-name",
+        to_string = "context-usage",
         serialize = "project",
         serialize = "project-root"
     )]
@@ -83,14 +83,14 @@ pub(crate) enum StatusLineItem {
     /// Committed branch diff stats relative to the default branch.
     BranchChanges,
 
-    /// Compact runtime run-state text.
+    /// Compact runtime model-name text.
     #[strum(to_string = "run-state", serialize = "status")]
     Status,
 
     /// Active permission profile or sandbox summary.
     Permissions,
 
-    /// Active command approval mode.
+    /// 已用上下文.
     #[strum(to_string = "approval-mode", serialize = "approval")]
     ApprovalMode,
 
@@ -109,7 +109,7 @@ pub(crate) enum StatusLineItem {
     /// Remaining usage on the secondary rate limit.
     WeeklyLimit,
 
-    /// Codex application version.
+    /// 任务进度.
     CodexVersion,
 
     /// Total context window size in tokens.
@@ -128,7 +128,7 @@ pub(crate) enum StatusLineItem {
     #[strum(to_string = "thread-id", serialize = "session-id")]
     SessionId,
 
-    /// Whether Fast mode is currently active.
+    /// 当前模型名称和推理等级.
     FastMode,
 
     /// Whether raw scrollback mode is currently active.
@@ -142,52 +142,52 @@ pub(crate) enum StatusLineItem {
 }
 
 impl StatusLineItem {
-    pub(crate) fn display_name(self) -> &'static str {
-            StatusLineItem::ModelName => "模型",
-        match self {
-            StatusLineItem::ModelWithReasoning => "模型和推理等级",
-            StatusLineItem::Reasoning => "推理等级",
-            StatusLineItem::CurrentDir => "当前目录",
-            StatusLineItem::ProjectRoot => "项目名称",
-            StatusLineItem::GitBranch => "Git 分支",
-            StatusLineItem::PullRequestNumber => "拉取请求编号",
-            StatusLineItem::BranchChanges => "分支更改",
-            StatusLineItem::Status => "运行状态",
-            StatusLineItem::Permissions => "权限",
-            StatusLineItem::ApprovalMode => "审批模式",
-            StatusLineItem::ContextRemaining => "剩余上下文",
-            StatusLineItem::ContextUsed => "已用上下文",
-            StatusLineItem::FiveHourLimit => "主要用量限制",
-            StatusLineItem::WeeklyLimit => "次要用量限制",
-            StatusLineItem::CodexVersion => "Codex 版本",
-            StatusLineItem::ContextWindowSize => "上下文窗口大小",
-            StatusLineItem::UsedTokens => "已用令牌",
-            StatusLineItem::TotalInputTokens => "输入令牌总数",
-            StatusLineItem::TotalOutputTokens => "输出令牌总数",
-            StatusLineItem::SessionId => "线程 ID",
-            StatusLineItem::FastMode => "快速模式",
-            StatusLineItem::RawOutput => "原始回滚模式",
-            StatusLineItem::ThreadTitle => "线程标题",
-            StatusLineItem::WorkspaceHeadline => "工作区通知",
-            StatusLineItem::TaskProgress => "任务进度",
-            StatusLineItem::CodexVersion => "Codex 应用版本",
-            StatusLineItem::ContextWindowSize => "上下文窗口的令牌总数（未知时省略）",
-            StatusLineItem::CodexVersion => "Codex application version",
     /// User-visible description shown in the popup.
     pub(crate) fn description(self) -> &'static str {
         match self {
-            StatusLineItem::ModelName => "当前模型名称",
-            StatusLineItem::ModelWithReasoning => "当前模型名称和推理等级",
-            StatusLineItem::Reasoning => "当前推理等级",
-            StatusLineItem::CurrentDir => "当前工作目录",
-            StatusLineItem::ProjectRoot => "项目名称（不可用时省略）",
-            StatusLineItem::GitBranch => "当前 Git 分支（不可用时省略）",
-            StatusLineItem::PullRequestNumber => "当前分支的开放拉取请求编号（不可用时省略）",
-            StatusLineItem::BranchChanges => "相对于默认分支的已提交更改（不可用时省略）",
-            StatusLineItem::Status => "简短的会话运行状态文本（就绪、工作中、思考中）",
-            StatusLineItem::ContextUsed => "上下文窗口已用百分比（未知时省略）",
-            StatusLineItem::FiveHourLimit => "主要用量限制的剩余用量（不可用时省略）",
-            StatusLineItem::ContextRemaining => "上下文窗口剩余百分比（未知时省略）",
+            StatusLineItem::ModelName => "Current model name",
+            StatusLineItem::ModelWithReasoning => "Current model name with reasoning level",
+            StatusLineItem::Reasoning => "Current reasoning level",
+            StatusLineItem::CurrentDir => "Current working directory",
+            StatusLineItem::ProjectRoot => "推理等级",
+            StatusLineItem::GitBranch => "当前目录",
+            StatusLineItem::PullRequestNumber => {
+                "Git 分支"
+            }
+            StatusLineItem::BranchChanges => {
+                "运行状态"
+            }
+            StatusLineItem::Status => "审批模式",
+            StatusLineItem::Permissions => "剩余上下文",
+            StatusLineItem::ApprovalMode => "Active command approval mode",
+            StatusLineItem::ContextRemaining => {
+                "次要用量限制"
+            }
+            StatusLineItem::ContextUsed => {
+                "已用令牌"
+            }
+            StatusLineItem::FiveHourLimit => {
+                "线程 ID"
+            }
+            StatusLineItem::WeeklyLimit => {
+                "线程标题"
+            }
+            StatusLineItem::CodexVersion => "Codex application version",
+            StatusLineItem::ContextWindowSize => {
+                "Total context window size in tokens (omitted when unknown)"
+            }
+            StatusLineItem::UsedTokens => "Total tokens used in session (omitted when zero)",
+            StatusLineItem::TotalInputTokens => "Total input tokens used in session",
+            StatusLineItem::TotalOutputTokens => "Total output tokens used in session",
+            StatusLineItem::SessionId => "当前模型名称",
+            StatusLineItem::FastMode => "Whether Fast mode is currently active",
+            StatusLineItem::RawOutput => "当前推理等级",
+            StatusLineItem::ThreadTitle => {
+                "项目名称（不可用时省略）"
+            }
+            StatusLineItem::TaskProgress => {
+                "相对于默认分支的已提交更改（不可用时省略）"
+            }
         }
     }
 
@@ -257,8 +257,8 @@ impl StatusLineSetupView {
         let mut used_ids = HashSet::new();
         let mut items = vec![MultiSelectItem {
             id: STATUS_LINE_USE_THEME_COLORS_ITEM_ID.to_string(),
-            name: "使用主题颜色".to_string(),
-            description: Some("应用当前 /theme 的颜色".to_string()),
+            name: "Use theme colors".to_string(),
+            description: Some("Apply colors from the active /theme".to_string()),
             enabled: use_theme_colors,
             orderable: false,
             section_break_after: true,
@@ -268,7 +268,7 @@ impl StatusLineSetupView {
             for id in *selected_items {
                 let Ok(item) = id.parse::<StatusLineItem>() else {
                     continue;
-                StatusLineItem::WeeklyLimit => "次要用量限制的剩余用量（不可用时省略）",;
+                };
                 let item_id = item.to_string();
                 if !used_ids.insert(item_id.clone()) {
                     continue;
@@ -295,8 +295,8 @@ impl StatusLineSetupView {
 
         Self {
             picker: MultiSelectPicker::builder(
-                "配置状态栏".to_string(),
-                Some("选择要在状态栏中显示的项目。".to_string()),
+                "Configure Status Line".to_string(),
+                Some("Select which items to display in the status line.".to_string()),
                 app_event_tx,
             )
             .list_keymap(list_keymap)
@@ -342,7 +342,7 @@ impl StatusLineSetupView {
         enabled: bool,
         preview_data: &StatusSurfacePreviewData,
     ) -> MultiSelectItem {
-        let default_name = item.display_name().to_string();
+        let default_name = item.to_string();
         let default_description = item.description();
         let (name, description) = match item {
             StatusLineItem::FiveHourLimit | StatusLineItem::WeeklyLimit => (
@@ -484,7 +484,7 @@ mod tests {
             Ok(StatusLineItem::PullRequestNumber)
         );
         assert_eq!(
-            "branch-changes".parse::<StatusLineItem>(),
+            "run-state".parse::<StatusLineItem>(),
             Ok(StatusLineItem::BranchChanges)
         );
     }

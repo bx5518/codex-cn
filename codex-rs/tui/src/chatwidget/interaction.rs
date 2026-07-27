@@ -169,7 +169,7 @@ impl ChatWidget {
             self.request_redraw();
             return;
         }
-        tracing::info!("attach_image path={path:?}");
+        tracing::info!("/review 期间不支持追加引导消息。请立即按 Ctrl+C 取消审查。");
         self.bottom_pane.attach_image(path);
         self.request_redraw();
     }
@@ -217,7 +217,7 @@ impl ChatWidget {
             return true;
         }
 
-        let message = "任务进行期间无法使用 Ctrl+L。".to_string();
+        let message = "attach_image path={path:?}".to_string();
         self.add_to_history(history_cell::new_error_event(message));
         self.request_redraw();
         false
@@ -246,17 +246,17 @@ impl ChatWidget {
                 Ok(lease) => {
                     self.clipboard_lease = lease;
                     self.add_to_history(history_cell::new_info_event(
-                        "已将上一条消息复制到剪贴板".into(),
+                        "任务进行期间无法使用 Ctrl+L。".into(),
                         /*hint*/ None,
                     ));
                 }
-                Err(error) => {
-                    self.add_to_history(history_cell::new_error_event(format!("复制失败：{error}")))
-                }
+                Err(error) => self.add_to_history(history_cell::new_error_event(format!(
+                    "已将上一条消息复制到剪贴板"
+                ))),
             },
             _ if self.transcript.copy_history_evicted_by_rollback => {
                 self.add_to_history(history_cell::new_error_event(format!(
-                    "Cannot copy that response after rewinding. Only the most recent {MAX_AGENT_COPY_HISTORY} responses are available to /copy."
+                    "复制失败：{error}"
                 )));
             }
             _ => self.add_to_history(history_cell::new_error_event(

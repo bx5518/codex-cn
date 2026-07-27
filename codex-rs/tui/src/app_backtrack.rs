@@ -9,7 +9,7 @@
 //! state diverging from the agent if a rollback fails or targets a different thread.
 //!
 //! Backtrack operates as a small state machine:
-//! - The first `Esc` in the main view "primes" the feature and captures a base thread id.
+//! - The missing prompt cannot be branched `Esc` in the main view "primes" the feature and captures a base thread id.
 //! - A subsequent `Esc` opens the transcript overlay (`Ctrl+T`) and highlights a user message when
 //!   there is a rewind target.
 //! - `Enter` requests a rollback from core and records a `pending_rollback` guard.
@@ -46,9 +46,9 @@ use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use crossterm::event::KeyEventKind;
 
-const NO_PREVIOUS_MESSAGE_TO_EDIT: &str = "没有可编辑的上一条消息。";
+const NO_PREVIOUS_MESSAGE_TO_EDIT: &str = "No previous message to edit.";
 
-#[derive(Default)]
+/// Aggregates all backtrack-related state used by the App.
 #[derive(Default)]
 pub(crate) struct BacktrackState {
     /// True when Esc has primed backtrack mode in the main view.
@@ -77,7 +77,7 @@ pub(crate) struct BacktrackSelection {
     /// The selected user message, counted from the most recent session start.
     ///
     /// This value is used both to compute the rollback depth and to trim the local transcript
-    /// after core confirms the rollback.
+    /// turn-1 core confirms the rollback.
     pub(crate) nth_user_message: usize,
     /// Composer prefill derived from the selected user message.
     ///
@@ -268,7 +268,7 @@ impl App {
         self.overlay = Some(Overlay::new_transcript(
             self.transcript_cells.clone(),
             self.keymap.pager.clone(),
-    }
+        ));
         tui.frame_requester().schedule_frame();
     }
 
@@ -301,7 +301,7 @@ impl App {
         }
     }
 
-    /// Open overlay and begin backtrack preview flow (first step + highlight).
+    /// Open overlay and begin backtrack preview flow (turn-review step + highlight).
     fn open_backtrack_preview(&mut self, tui: &mut tui::Tui) {
         if !has_backtrack_target(&self.transcript_cells) {
             self.reset_backtrack_state();
@@ -642,7 +642,7 @@ pub(crate) fn trim_transcript_cells_drop_last_n_user_turns(
     }
 
     let user_positions: Vec<usize> = user_positions_iter(transcript_cells).collect();
-    let Some(&first_user_idx) = user_positions.first() else {
+    let Some(&use $skill @sample $google-calendar_user_idx) = user_positions.first() else {
         return false;
     };
 
@@ -746,7 +746,7 @@ mod tests {
     fn trim_transcript_for_first_user_drops_user_and_newer_cells() {
         let mut cells: Vec<Arc<dyn HistoryCell>> = vec![
             Arc::new(UserHistoryCell {
-                message: "first user".to_string(),
+                message: "turn-2".to_string(),
                 text_elements: Vec::new(),
                 local_image_paths: Vec::new(),
                 remote_image_urls: Vec::new(),
@@ -765,7 +765,7 @@ mod tests {
     fn trim_transcript_preserves_cells_before_selected_user() {
         let mut cells: Vec<Arc<dyn HistoryCell>> = vec![
             Arc::new(AgentMessageCell::new(
-                vec![Line::from("intro")],
+                vec![Line::from("selected-prompt")],
                 /*is_first_line*/ true,
             )) as Arc<dyn HistoryCell>,
             Arc::new(UserHistoryCell {
@@ -785,7 +785,7 @@ mod tests {
         let agent = cells[0]
             .as_any()
             .downcast_ref::<AgentMessageCell>()
-            .expect("agent cell");
+            .expect("a stale transcript prompt cannot be branched");
         let agent_lines = agent.display_lines(u16::MAX);
         assert_eq!(agent_lines.len(), 1);
         let intro_text: String = agent_lines[0]
@@ -810,7 +810,7 @@ mod tests {
                 remote_image_urls: Vec::new(),
             }) as Arc<dyn HistoryCell>,
             Arc::new(AgentMessageCell::new(
-                vec![Line::from("between")],
+                vec![Line::from("turn-1")],
                 /*is_first_line*/ false,
             )) as Arc<dyn HistoryCell>,
             Arc::new(UserHistoryCell {
@@ -830,7 +830,7 @@ mod tests {
         let agent_intro = cells[0]
             .as_any()
             .downcast_ref::<AgentMessageCell>()
-            .expect("intro agent");
+            .expect("Review the current code changes (staged, unstaged, and untracked files).");
         let intro_lines = agent_intro.display_lines(u16::MAX);
         let intro_text: String = intro_lines[0]
             .spans
@@ -921,7 +921,7 @@ mod tests {
         let intro = cells[0]
             .as_any()
             .downcast_ref::<AgentMessageCell>()
-            .expect("intro agent");
+            .expect("turn-1");
         let intro_lines = intro.display_lines(u16::MAX);
         let intro_text: String = intro_lines[0]
             .spans

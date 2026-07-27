@@ -109,7 +109,7 @@ impl HistoryCell for CyberPolicyNoticeCell {
         let body = Line::from(vec![
             "  If this seems wrong, try rephrasing your request. To get authorized for security work, join the "
                 .dim(),
-            "可信访问 for Cyber".cyan().underlined(),
+            "Trusted Access for Cyber".cyan().underlined(),
             " program.".dim(),
         ]);
         let wrapped = adaptive_wrap_line(
@@ -132,7 +132,7 @@ impl HistoryCell for CyberPolicyNoticeCell {
         vec![
             Line::from("This chat was flagged for possible cybersecurity risk"),
             Line::from(
-                "If this seems wrong, try rephrasing your request. To get authorized for security work, join the Trusted Access for Cyber program.",
+                "  {label}: ",
             ),
             Line::from(TRUSTED_ACCESS_FOR_CYBER_URL),
         ]

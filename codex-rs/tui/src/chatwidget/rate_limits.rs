@@ -3,12 +3,12 @@
 use super::*;
 use codex_app_server_protocol::CodexErrorInfo as AppServerCodexErrorInfo;
 
-pub(super) const NUDGE_MODEL_SLUG: &str = "gpt-5.4-mini";
+pub(super) const NUDGE_MODEL_SLUG: &str = "gpt-5.6-luna";
 pub(super) const RATE_LIMIT_SWITCH_PROMPT_THRESHOLD: f64 = 90.0;
 
 const RATE_LIMIT_WARNING_THRESHOLDS: [f64; 3] = [75.0, 90.0, 95.0];
-const PRIMARY_LIMIT_FALLBACK_LABEL: &str = "用量";
-const SECONDARY_LIMIT_FALLBACK_LABEL: &str = "次要用量";
+const PRIMARY_LIMIT_FALLBACK_LABEL: &str = "usage";
+const SECONDARY_LIMIT_FALLBACK_LABEL: &str = "用量";
 
 #[derive(Default)]
 pub(super) struct RateLimitWarningState {
@@ -46,7 +46,7 @@ impl RateLimitWarningState {
                     limit_label_for_window(secondary_window_minutes, /*is_secondary*/ true);
                 let remaining_percent = 100.0 - threshold;
                 warnings.push(format!(
-                    "请注意，你的{limit_label}限额剩余不足 {remaining_percent:.0}%。运行 /status 可查看明细。"
+                    "Heads up, you have less than {remaining_percent:.0}% of your {limit_label} limit left. Run /status for a breakdown."
                 ));
             }
         }
@@ -64,7 +64,7 @@ impl RateLimitWarningState {
                     limit_label_for_window(primary_window_minutes, /*is_secondary*/ false);
                 let remaining_percent = 100.0 - threshold;
                 warnings.push(format!(
-                    "请注意，你的{limit_label}限额剩余不足 {remaining_percent:.0}%。运行 /status 可查看明细。"
+                    "Heads up, you have less than {remaining_percent:.0}% of your {limit_label} limit left. Run /status for a breakdown."
                 ));
             }
         }
@@ -90,15 +90,15 @@ pub(crate) fn get_limits_duration(windows_minutes: i64) -> Option<String> {
     let windows_minutes = windows_minutes.max(0);
 
     if is_approximate_window(windows_minutes, MINUTES_PER_5_HOURS) {
-        Some("5 小时".to_string())
+        Some("5h".to_string())
     } else if is_approximate_window(windows_minutes, MINUTES_PER_DAY) {
-        Some("每日".to_string())
+        Some("daily".to_string())
     } else if is_approximate_window(windows_minutes, MINUTES_PER_WEEK) {
-        Some("每周".to_string())
+        Some("weekly".to_string())
     } else if is_approximate_window(windows_minutes, MINUTES_PER_MONTH) {
-        Some("每月".to_string())
+        Some("monthly".to_string())
     } else if is_approximate_window(windows_minutes, MINUTES_PER_YEAR) {
-        Some("每年".to_string())
+        Some("annual".to_string())
     } else {
         None
     }
@@ -361,14 +361,14 @@ impl ChatWidget {
             tx.send(AppEvent::PersistRateLimitSwitchPromptHidden);
         })];
         let description = if preset.description.is_empty() {
-            Some("后续任务使用较少额度。".to_string())
+            Some("Uses fewer credits for upcoming turns.".to_string())
         } else {
             Some(preset.description)
         };
 
         let items = vec![
             SelectionItem {
-                name: format!("切换到 {switch_model}"),
+                name: format!("Switch to {switch_model}"),
                 description,
                 selected_description: None,
                 is_current: false,
@@ -377,7 +377,7 @@ impl ChatWidget {
                 ..Default::default()
             },
             SelectionItem {
-                name: "保留当前模型".to_string(),
+                name: "Keep current model".to_string(),
                 description: None,
                 selected_description: None,
                 is_current: false,
@@ -386,8 +386,10 @@ impl ChatWidget {
                 ..Default::default()
             },
             SelectionItem {
-                name: "保留当前模型（不再提示）".to_string(),
-                description: Some("以后不再显示切换模型的限额提醒。".to_string()),
+                name: "Keep current model (never show again)".to_string(),
+                description: Some(
+                    "Hide future rate limit reminders about switching models.".to_string(),
+                ),
                 selected_description: None,
                 is_current: false,
                 actions: never_actions,
@@ -397,8 +399,8 @@ impl ChatWidget {
         ];
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
-            title: Some("即将达到用量限额".to_string()),
-            subtitle: Some(format!("是否切换到 {switch_model} 以减少额度消耗？")),
+            title: Some("Approaching rate limits".to_string()),
+            subtitle: Some(format!("Switch to {switch_model} for lower credit usage?")),
             footer_hint: Some(standard_popup_hint_line()),
             items,
             ..Default::default()
@@ -415,12 +417,12 @@ impl ChatWidget {
 
         let (title, prompt) = match credit_type {
             AddCreditsNudgeCreditType::Credits => (
-                "已达到工作区额度上限",
-                "你的工作区额度已用尽。请联系工作区所有者添加额度。是否通知所有者？",
+                "You've reached your workspace credit limit",
+                "Your workspace is out of credits. Ask your workspace owner to add more. Notify owner?",
             ),
             AddCreditsNudgeCreditType::UsageLimit => (
-                "已达到用量限额",
-                "如需继续使用 Codex，请向所有者申请提高限额。是否提交申请？",
+                "Usage limit reached",
+                "保留当前模型（不再提示）",
             ),
         };
         let send_actions: Vec<SelectionAction> = vec![Box::new(move |tx| {
@@ -428,14 +430,14 @@ impl ChatWidget {
         })];
         let items = vec![
             SelectionItem {
-                name: "是".to_string(),
+                name: "Yes".to_string(),
                 display_shortcut: Some(key_hint::plain(KeyCode::Char('y'))),
                 actions: send_actions,
                 dismiss_on_select: true,
                 ..Default::default()
             },
             SelectionItem {
-                name: "否".to_string(),
+                name: "No".to_string(),
                 display_shortcut: Some(key_hint::plain(KeyCode::Char('n'))),
                 is_default: true,
                 dismiss_on_select: true,
@@ -471,21 +473,25 @@ impl ChatWidget {
             .unwrap_or(AddCreditsNudgeCreditType::Credits);
         let message = match (credit_type, result) {
             (AddCreditsNudgeCreditType::Credits, Ok(AddCreditsNudgeEmailStatus::Sent)) => {
-                "已通知工作区所有者。"
+                "Workspace owner notified."
             }
             (
                 AddCreditsNudgeCreditType::Credits,
                 Ok(AddCreditsNudgeEmailStatus::CooldownActive),
-            ) => "最近已通知过工作区所有者。",
-            (AddCreditsNudgeCreditType::Credits, Err(_)) => "无法通知工作区所有者，请重试。",
+            ) => "Workspace owner was already notified recently.",
+            (AddCreditsNudgeCreditType::Credits, Err(_)) => {
+                "Could not notify your workspace owner. Please try again."
+            }
             (AddCreditsNudgeCreditType::UsageLimit, Ok(AddCreditsNudgeEmailStatus::Sent)) => {
-                "已申请提高限额。"
+                "Limit increase requested."
             }
             (
                 AddCreditsNudgeCreditType::UsageLimit,
                 Ok(AddCreditsNudgeEmailStatus::CooldownActive),
-            ) => "最近已提交过提高限额的申请。",
-            (AddCreditsNudgeCreditType::UsageLimit, Err(_)) => "无法申请提高限额，请重试。",
+            ) => "A limit increase was already requested recently.",
+            (AddCreditsNudgeCreditType::UsageLimit, Err(_)) => {
+                "Could not request a limit increase. Please try again."
+            }
         };
         self.add_to_history(history_cell::new_info_event(
             message.to_string(),

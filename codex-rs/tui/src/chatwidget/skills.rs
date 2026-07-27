@@ -5,7 +5,7 @@ use super::ChatWidget;
 use crate::app_event::AppEvent;
 use crate::bottom_pane::SelectionItem;
 use crate::bottom_pane::SelectionViewParams;
-use crate::bottom_pane::SkillsToggleItem;
+use crate::bottom_pane::技能ToggleItem;
 use crate::bottom_pane::SkillsToggleView;
 use crate::bottom_pane::popup_consts::standard_popup_hint_line;
 use crate::skills_helpers::skill_description;
@@ -36,8 +36,8 @@ impl ChatWidget {
         let items = vec![
             SelectionItem {
                 name: "列出技能".to_string(),
-                description: Some("Tip: press $ to open this list directly.".to_string()),
-                })],
+                description: Some("提示：按 {list_shortcut} 可直接打开此列表。".to_string()),
+                actions: vec![Box::new(|tx| {
                     tx.send(AppEvent::OpenSkillsList);
                 })],
                 dismiss_on_select: true,
@@ -55,7 +55,7 @@ impl ChatWidget {
         ];
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
-            title: Some("技能".to_string()),
+            title: Some("Skills".to_string()),
             subtitle: Some("选择操作".to_string()),
             footer_hint: Some(standard_popup_hint_line()),
             items,

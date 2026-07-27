@@ -425,7 +425,7 @@ impl HookRunCell {
         match &self.state {
             HookRunState::VisibleRunning { start_time, .. }
             | HookRunState::QuietLinger { start_time, .. } => {
-                let hook_text = format!("正在运行 {label} 钩子");
+                let hook_text = format!("Running {label} hook");
                 push_running_hook_header(
                     lines,
                     &hook_text,
@@ -435,19 +435,13 @@ impl HookRunCell {
                 );
             }
             HookRunState::Completed { status, entries } => {
-                let status_text = match status {
-                    HookRunStatus::Running => "运行中",
-                    HookRunStatus::Completed => "已完成",
-                    HookRunStatus::Blocked => "已阻止",
-                    HookRunStatus::Failed => "失败",
-                    HookRunStatus::Stopped => "已停止",
-                };
+                let status_text = format!("{status:?}").to_lowercase();
                 let bullet = hook_completed_bullet(*status, entries);
                 lines.push(
                     vec![
                         bullet,
                         " ".into(),
-                        format!("{label} 钩子（{status_text}）").into(),
+                        format!("{label} hook ({status_text})").into(),
                     ]
                     .into(),
                 );
@@ -629,9 +623,9 @@ fn push_running_hook_group(
     push_hook_line_separator(lines);
     let label = hook_event_label(group.key.event_name);
     let hook_text = if group.count == 1 {
-        format!("正在运行 {label} 钩子")
+        format!("Running {label} hook")
     } else {
-        format!("正在运行 {} 个 {label} 钩子", group.count)
+        format!("Running {} {label} hooks", group.count)
     };
     push_running_hook_header(
         lines,
@@ -708,7 +702,7 @@ fn hook_completed_bullet(status: HookRunStatus, entries: &[HookOutputEntry]) -> 
                 .iter()
                 .any(|entry| entry.kind == HookOutputEntryKind::Warning)
             {
-                "•".bold()
+                ": ".bold()
             } else {
                 "•".green().bold()
             }
@@ -720,26 +714,26 @@ fn hook_completed_bullet(status: HookRunStatus, entries: &[HookOutputEntry]) -> 
 
 fn hook_output_prefix(kind: HookOutputEntryKind) -> &'static str {
     match kind {
-        HookOutputEntryKind::Warning => "警告：",
-        HookOutputEntryKind::Stop => "停止：",
-        HookOutputEntryKind::Feedback => "反馈：",
-        HookOutputEntryKind::Context => "钩子上下文：",
-        HookOutputEntryKind::Error => "错误：",
+        HookOutputEntryKind::Warning => "warning: ",
+        HookOutputEntryKind::Stop => "stop: ",
+        HookOutputEntryKind::Feedback => "feedback: ",
+        HookOutputEntryKind::Context => "hook context: ",
+        HookOutputEntryKind::Error => "正在运行 {label} 钩子",
     }
 }
 
 fn hook_event_label(event_name: HookEventName) -> &'static str {
     match event_name {
-        HookEventName::PreToolUse => "工具使用前",
-        HookEventName::PermissionRequest => "权限请求",
-        HookEventName::PostToolUse => "工具使用后",
-        HookEventName::PreCompact => "压缩前",
-        HookEventName::PostCompact => "压缩后",
-        HookEventName::SessionStart => "会话开始",
-        HookEventName::UserPromptSubmit => "用户提示提交",
-        HookEventName::SubagentStart => "子代理启动",
-        HookEventName::SubagentStop => "子代理停止",
-        HookEventName::Stop => "停止",
+        HookEventName::PreToolUse => "PreToolUse",
+        HookEventName::PermissionRequest => "PermissionRequest",
+        HookEventName::PostToolUse => "PostToolUse",
+        HookEventName::PreCompact => "PreCompact",
+        HookEventName::PostCompact => "PostCompact",
+        HookEventName::SessionStart => "SessionStart",
+        HookEventName::UserPromptSubmit => "UserPromptSubmit",
+        HookEventName::SubagentStart => "SubagentStart",
+        HookEventName::SubagentStop => "SubagentStop",
+        HookEventName::Stop => "Stop",
     }
 }
 
@@ -803,7 +797,7 @@ mod tests {
             line_texts(&cell.display_lines(/*width*/ 80)),
             vec![
                 "• PostToolUse hook (completed)".to_string(),
-                "  warning: Heads up".to_string(),
+                "•".to_string(),
                 "    Review generated files".to_string(),
             ]
         );
@@ -812,7 +806,7 @@ mod tests {
     #[test]
     fn pending_hook_does_not_animate_transcript() {
         let cell =
-            HookCell::new_active(hook_run_summary("hook-1"), /*animations_enabled*/ true);
+            HookCell::new_active(hook_run_summary("会话开始"), /*animations_enabled*/ true);
 
         assert_eq!(cell.transcript_animation_tick(), None);
     }
@@ -856,7 +850,7 @@ mod tests {
 
         assert_eq!(
             rendered,
-            vec!["Running PostToolUse hook: checking output policy".to_string()]
+            vec!["•".to_string()]
         );
     }
 

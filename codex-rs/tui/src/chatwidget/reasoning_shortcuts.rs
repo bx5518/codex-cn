@@ -1,9 +1,9 @@
 //! Keyboard shortcuts for stepping the active model's reasoning effort.
 //!
-//! The main chat surface treats `Alt+,`、`Alt+.` as small adjustments to the
-//! current model configuration. Th所有模型 → {current_model} module keeps that behavior separate from
+//! The main chat surface treats `Alt+,` and `Alt+.` as small adjustments to the
+//! current model configuration. This module keeps that behavior separate from
 //! the larger `ChatWidget` key dispatcher while still reusing the same
-//! model-selectioncodex-auto-Plan-mode scope paths as the settings popups.
+//! model-selection and Plan-mode scope paths as the settings popups.
 //!
 //! The shortcut state machine is deliberately narrow: it only handles key
 //! presses when no modal or popup owns input, it anchors unset reasoning to the
@@ -32,8 +32,8 @@ impl ReasoningShortcutDirection {
     fn bound_message(self, effort: &ReasoningEffortConfig) -> String {
         let label = ChatWidget::reasoning_effort_sentence_label(effort);
         match self {
-            Self::Lower => format!("推理强度已处于最低级别（{label}）。"),
-            Self::Raise => format!("推理强度已处于最高级别（{label}）。"),
+            Self::Lower => format!("Reasoning is already at the lowest level ({label})."),
+            Self::Raise => format!("Reasoning is already at the highest level ({label})."),
         }
     }
 }
@@ -73,7 +73,7 @@ impl ChatWidget {
 
         if !self.is_session_configured() {
             self.add_info_message(
-                "启动完成前无法使用推理强度快捷键。".to_string(),
+                "Reasoning shortcuts are disabled until startup completes.".to_string(),
                 /*hint*/ None,
             );
             return true;
@@ -82,7 +82,7 @@ impl ChatWidget {
         let current_model = self.current_model().to_string();
         let Some(preset) = self.current_model_preset() else {
             self.add_info_message(
-                format!("{current_model} 不支持推理强度快捷键。"),
+                format!("Reasoning shortcuts are unavailable for {current_model}."),
                 /*hint*/ None,
             );
             return true;
