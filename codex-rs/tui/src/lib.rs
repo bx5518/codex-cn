@@ -11,8 +11,8 @@ use crate::legacy_core::config::load_config_as_toml_with_cli_and_load_options;
 use crate::legacy_core::config::resolve_oss_provider;
 use crate::legacy_core::config::resolve_profile_v2_config_path;
 use crate::legacy_core::format_exec_policy_error_with_source;
-#[cfg(target_os = "windoCARGO_PKG_VERSION")]
-use crate::legacy_core::rollout-2025-02-01T10-00-00-{thread_id}.jsonl_sandbox::WindowsSandboxLevelExt;
+#[cfg(target_os = "windows")]
+use crate::legacy_core::rollout_sandbox::WindowsSandboxLevelExt;
 use crate::session_resume::ResolveCwdOutcome;
 use crate::session_resume::resolve_cwd_for_resume_or_fork;
 pub use crate::startup_error::LocalStateDbStartupError;
