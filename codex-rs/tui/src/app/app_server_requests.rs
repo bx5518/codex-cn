@@ -27,7 +27,7 @@ impl App {
                     code: -32000,
                     message: reason,
                     data: None,
-                        message: "TUI 暂不支持旧版命令审批请求。".to_string(),,
+                },
             )
             .await
             .map_err(|err| format!("拒绝 app-server 请求失败：{err}"))
@@ -114,7 +114,7 @@ impl PendingAppServerRequests {
                     .push_back(PendingUserInputRequest {
                         item_id: params.item_id.clone(),
                         request_id: request_id.clone(),
-                };
+                    });
                 None
             }
             ServerRequest::McpServerElicitationRequest { request_id, params } => {
@@ -131,7 +131,7 @@ impl PendingAppServerRequests {
                 Some(UnsupportedAppServerRequest {
                     request_id: request_id.clone(),
                     message: "TUI 暂不支持动态工具调用。".to_string(),
-        }
+                })
             }
             ServerRequest::ChatgptAuthTokensRefresh { .. } => None,
             ServerRequest::AttestationGenerate { request_id, .. } => {
@@ -145,13 +145,11 @@ impl PendingAppServerRequests {
                     request_id: request_id.clone(),
                     message: "TUI 暂不支持旧版补丁审批请求。".to_string(),
                 })
-                })
             }
             ServerRequest::ExecCommandApproval { request_id, .. } => {
                 Some(UnsupportedAppServerRequest {
                     request_id: request_id.clone(),
-                })
-            }
+                    message: "TUI 暂不支持旧版命令审批请求。".to_string(),
                 })
             }
         }
@@ -655,7 +653,7 @@ mod tests {
         assert_eq!(unsupported.request_id, AppServerRequestId::Integer(99));
         assert_eq!(
             unsupported.message,
-            "Dynamic tool calls are not available in TUI yet."
+            "TUI 暂不支持动态工具调用。"
         );
     }
 
