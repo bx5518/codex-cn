@@ -130,7 +130,7 @@ impl App {
                     "codex.thread.fork",
                     /*inc*/ 1,
                     &[("source", "slash_command")],
-            }
+                );
                 let summary = session_summary(
                     self.chat_widget.token_usage(),
                     self.chat_widget.thread_id(),
@@ -170,8 +170,7 @@ impl App {
                                 Err(err) => {
                                     self.chat_widget.add_error_message(format!(
                                         "连接到派生的 app-server 会话失败：{err}"
-                                        "信 息 征 询".to_string(),
-                                }
+                                    ));
                             }
                         }
                         Err(err) => {
