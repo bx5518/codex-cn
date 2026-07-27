@@ -47,7 +47,7 @@ jobs:
             pkg-config
 
       - name: Build Codex
-        run: cargo build --target x86_64-unknown-linux-gnu --release --bin codex
+        run: cargo build --jobs 2 --target x86_64-unknown-linux-gnu --release --bin codex
 
       - name: Package Linux binary
         shell: bash
