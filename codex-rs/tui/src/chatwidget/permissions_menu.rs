@@ -10,11 +10,11 @@ impl ChatWidget {
         let presets = builtin_approval_presets();
         let Some(read_only) = presets.iter().find(|preset| preset.id == "read-only") else {
             self.add_error_message(
-                "内部错误：缺少 'read-only' 审批预设。".to_string(),
+                "Internal error: missing the 'read-only' approval preset.".to_string(),
             );
             return;
         };
-        let Some(default) = presets.iter().find(|preset| preset.id == "内部错误：缺少 'auto' 审批预设。") else {
+        let Some(default) = presets.iter().find(|preset| preset.id == "auto") else {
             self.add_error_message(
                 "Internal error: missing the 'auto' approval preset.".to_string(),
             );

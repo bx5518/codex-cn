@@ -14,8 +14,8 @@ impl ChatWidget {
         let status = edited_goal_status(goal.status);
         let token_budget = goal.token_budget;
         let view = CustomPromptView::new(
-            "编辑目标".to_string(),
-            "输入目标内容后按 Enter".to_string(),
+            "Edit goal".to_string(),
+            "Type a goal objective and press Enter".to_string(),
             goal.objective,
             /*context_label*/ None,
             Box::new(move |objective: String| {
@@ -44,21 +44,21 @@ impl ChatWidget {
             });
         })];
         self.show_selection_view(SelectionViewParams {
-            title: Some("恢复已暂停的目标？".to_string()),
-            subtitle: Some(format!("目标：{objective}")),
+            title: Some("Resume paused goal?".to_string()),
+            subtitle: Some(format!("Goal: {objective}")),
             footer_hint: Some(standard_popup_hint_line()),
             initial_selected_idx: Some(0),
             items: vec![
                 SelectionItem {
-                    name: "恢复目标".to_string(),
-                    description: Some("将其标记为活动，并在空闲时继续".to_string()),
+                    name: "Resume goal".to_string(),
+                    description: Some("Mark it active and continue when idle".to_string()),
                     actions: resume_actions,
                     dismiss_on_select: true,
                     ..Default::default()
                 },
                 SelectionItem {
-                    name: "保持暂停".to_string(),
-                    description: Some("继续保持暂停；稍后可使用 /goal resume".to_string()),
+                    name: "Leave paused".to_string(),
+                    description: Some("Keep it paused; use /goal resume later".to_string()),
                     dismiss_on_select: true,
                     ..Default::default()
                 },
@@ -80,34 +80,34 @@ impl ChatWidget {
 
 fn goal_summary_lines(goal: &AppThreadGoal) -> Vec<Line<'static>> {
     let mut lines = vec![
-        Line::from("目标".bold()),
+        Line::from("Goal".bold()),
         Line::from(vec![
-            "状态：".dim(),
+            "Status: ".dim(),
             goal_status_label(goal.status).to_string().into(),
         ]),
-        Line::from(vec!["内容：".dim(), goal.objective.clone().into()]),
+        Line::from(vec!["Objective: ".dim(), goal.objective.clone().into()]),
         Line::from(vec![
-            "已用时间：".dim(),
+            "Time used: ".dim(),
             format_goal_elapsed_seconds(goal.time_used_seconds).into(),
         ]),
         Line::from(vec![
-            "已用令牌：".dim(),
+            "Tokens used: ".dim(),
             format_tokens_compact(goal.tokens_used).into(),
         ]),
     ];
     if let Some(token_budget) = goal.token_budget {
         lines.push(Line::from(vec![
-            "令牌预算：".dim(),
+            "Token budget: ".dim(),
             format_tokens_compact(token_budget).into(),
         ]));
     }
     let command_hint = match goal.status {
-        AppThreadGoalStatus::Active => "命令：/goal edit、/goal pause、/goal clear",
+        AppThreadGoalStatus::Active => "Commands: /goal edit, /goal pause, /goal clear",
         AppThreadGoalStatus::Paused
         | AppThreadGoalStatus::Blocked
-        | AppThreadGoalStatus::UsageLimited => "命令：/goal edit、/goal resume、/goal clear",
+        | AppThreadGoalStatus::UsageLimited => "Commands: /goal edit, /goal resume, /goal clear",
         AppThreadGoalStatus::BudgetLimited | AppThreadGoalStatus::Complete => {
-            "命令：/goal edit、/goal clear"
+            "Commands: /goal edit, /goal clear"
         }
     };
     lines.push(Line::default());
@@ -117,12 +117,12 @@ fn goal_summary_lines(goal: &AppThreadGoal) -> Vec<Line<'static>> {
 
 fn goal_status_label(status: AppThreadGoalStatus) -> &'static str {
     match status {
-        AppThreadGoalStatus::Active => "活动",
-        AppThreadGoalStatus::Paused => "已暂停",
-        AppThreadGoalStatus::Blocked => "受阻",
-        AppThreadGoalStatus::UsageLimited => "用量受限",
-        AppThreadGoalStatus::BudgetLimited => "预算受限",
-        AppThreadGoalStatus::Complete => "已完成",
+        AppThreadGoalStatus::Active => "active",
+        AppThreadGoalStatus::Paused => "paused",
+        AppThreadGoalStatus::Blocked => "blocked",
+        AppThreadGoalStatus::UsageLimited => "usage limited",
+        AppThreadGoalStatus::BudgetLimited => "limited by budget",
+        AppThreadGoalStatus::Complete => "complete",
     }
 }
 

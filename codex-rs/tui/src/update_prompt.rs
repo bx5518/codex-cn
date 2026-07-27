@@ -193,7 +193,7 @@ impl WidgetRef for &UpdatePromptScreen {
         column.push("");
         column.push(Line::from(vec![
             padded_emoji("  ✨").bold().cyan(),
-            "有可用更新！".bold(),
+            "Update available!".bold(),
             " ".into(),
             format!(
                 "{current} -> {latest}",
@@ -205,7 +205,7 @@ impl WidgetRef for &UpdatePromptScreen {
         column.push("");
         column.push(
             Line::from(vec![
-                "发行说明：".dim(),
+                "Release notes: ".dim(),
                 RELEASE_NOTES_URL.dim().underlined(),
             ])
             .inset(Insets::tlbr(0, 2, 0, 0)),
@@ -213,25 +213,25 @@ impl WidgetRef for &UpdatePromptScreen {
         column.push("");
         column.push(selection_option_row(
             0,
-            format!("立即更新（运行 `{update_command}`）"),
+            format!("Update now (runs `{update_command}`)"),
             self.highlighted == UpdateSelection::UpdateNow,
         ));
         column.push(selection_option_row(
             1,
-            "暂不更新".to_string(),
+            "Skip".to_string(),
             self.highlighted == UpdateSelection::NotNow,
         ));
         column.push(selection_option_row(
             2,
-            "在下个版本前不再提醒".to_string(),
+            "Skip until next version".to_string(),
             self.highlighted == UpdateSelection::DontRemind,
         ));
         column.push("");
         column.push(
             Line::from(vec![
-                "按 ".dim(),
+                "Press ".dim(),
                 key_hint::plain(KeyCode::Enter).into(),
-                " 继续".dim(),
+                " to continue".dim(),
             ])
             .inset(Insets::tlbr(0, 2, 0, 0)),
         );

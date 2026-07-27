@@ -5,18 +5,18 @@
 
 use super::*;
 
-const DESKTOP_THREAD_OPENED_MESSAGE: &str = "已在桌面应用中打开此会话。";
+const DESKTOP_THREAD_OPENED_MESSAGE: &str = "Opened this session in Codex Desktop.";
 
 impl App {
     pub(super) fn open_url_in_browser(&mut self, url: String) {
         if let Err(err) = webbrowser::open(&url) {
             self.chat_widget
-                .add_error_message(format!("无法在浏览器中打开 {url}：{err}"));
+                .add_error_message(format!("Failed to open browser for {url}: {err}"));
             return;
         }
 
         self.chat_widget
-            .add_info_message(format!("已在浏览器中打开 {url}。"), /*hint*/ None);
+            .add_info_message(format!("Opened {url} in your browser."), /*hint*/ None);
     }
 
     pub(super) fn open_desktop_thread(&mut self, thread_id: ThreadId) {
@@ -119,7 +119,7 @@ impl App {
 
 fn desktop_thread_open_error_message(err: &str) -> String {
     format!(
-        "无法在桌面应用中打开此会话：{err}。请安装或启动桌面应用后重试。"
+        "Failed to open this session in Codex Desktop: {err}. Install or launch Codex Desktop and try again."
     )
 }
 
@@ -128,12 +128,12 @@ fn open_desktop_thread_url(url: &str) -> Result<(), String> {
     let status = std::process::Command::new("open")
         .arg(url)
         .status()
-        .map_err(|err| format!("无法调用 `open`：{err}"))?;
+        .map_err(|err| format!("failed to invoke `open`: {err}"))?;
 
     if status.success() {
         Ok(())
     } else {
-        Err(format!("`open {url}` 已退出，状态为 {status}"))
+        Err(format!("`open {url}` exited with {status}"))
     }
 }
 
@@ -145,7 +145,7 @@ fn open_desktop_thread_url(url: &str) -> Result<(), String> {
         .arg("-Command")
         .arg(&script)
         .output()
-        .map_err(|err| format!("无法通过 PowerShell 启动桌面应用：{err}"))?;
+        .map_err(|err| format!("failed to launch Codex Desktop through PowerShell: {err}"))?;
 
     if output.status.success() {
         return Ok(());
@@ -154,7 +154,7 @@ fn open_desktop_thread_url(url: &str) -> Result<(), String> {
     let stderr = String::from_utf8_lossy(&output.stderr).trim().to_string();
     if stderr.is_empty() {
         Err(format!(
-            "通过 PowerShell 启动桌面应用失败，状态为 {}",
+            "failed to launch Codex Desktop through PowerShell with {}",
             output.status
         ))
     } else {
@@ -170,29 +170,14 @@ fn windows_desktop_app_launch_script(url: &str) -> String {
 $ErrorActionPreference = 'Stop'
 $url = {url}
 
-$package = Get-AppxPackage -Name OpenAI.Codex -ErrorAction SilentlyContinue
-if ($null -eq $package) {{
-    Write-Error '未安装桌面应用包'
+$installLocation = (Get-AppxPackage -Name OpenAI.Codex -ErrorAction SilentlyContinue).InstallLocation
+if ([string]::IsNullOrWhiteSpace($installLocation)) {{
+    Write-Error 'Codex Desktop package is not installed'
     exit 1
 }}
 
-$manifest = Get-AppxPackageManifest -Package $package.PackageFullName
-$application = $manifest.Package.Applications.Application |
-    Where-Object {{
-        @($_.Extensions.Extension) | Where-Object {{
-            $_.Category -eq 'windows.protocol' -and $_.Protocol.Name -eq 'codex'
-        }}
-    }} |
-    Select-Object -First 1
-if ($null -eq $application -or [string]::IsNullOrWhiteSpace($application.Executable)) {{
-    Write-Error '桌面应用包未声明 codex 协议可执行文件'
-    exit 1
-}}
-
-# Launch the package-declared protocol executable rather than an internal Electron shim.
-# Windows can deny direct starts of internal executables under WindowsApps.
-$exe = Join-Path $package.InstallLocation $application.Executable
-$appDir = Split-Path -Parent $exe
+$appDir = Join-Path $installLocation 'app'
+$exe = Join-Path $appDir 'Codex.exe'
 $app = Join-Path $appDir 'resources\app.asar'
 if (-not (Test-Path $exe)) {{
     Write-Error "Codex Desktop executable not found at $exe"
@@ -215,7 +200,7 @@ fn powershell_single_quoted_string(value: &str) -> String {
 
 #[cfg(not(any(target_os = "macos", target_os = "windows")))]
 fn open_desktop_thread_url(_url: &str) -> Result<(), String> {
-    Err("桌面应用仅支持 macOS 和 Windows".to_string())
+    Err("Codex Desktop is only available on macOS and Windows".to_string())
 }
 
 #[cfg(test)]

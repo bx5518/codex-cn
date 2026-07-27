@@ -57,12 +57,12 @@ impl ChatWidget {
                     .or_else(|| Some(command.join(" ")))
             }
             GuardianAssessmentAction::ApplyPatch { files, .. } => Some(if files.len() == 1 {
-                format!("apply_patch 涉及 {}", files[0].display())
+                format!("apply_patch touching {}", files[0].display())
             } else {
-                format!("apply_patch 涉及 {} 个文件", files.len())
+                format!("apply_patch touching {} files", files.len())
             }),
             GuardianAssessmentAction::NetworkAccess { target, .. } => {
-                Some(format!("访问网络目标 {target}"))
+                Some(format!("network access to {target}"))
             }
             GuardianAssessmentAction::McpToolCall {
                 server,
@@ -71,10 +71,10 @@ impl ChatWidget {
                 ..
             } => {
                 let label = connector_name.as_deref().unwrap_or(server.as_str());
-                Some(format!("在 {label} 上调用 MCP 工具 {tool_name}"))
+                Some(format!("MCP {tool_name} on {label}"))
             }
             GuardianAssessmentAction::RequestPermissions { reason, .. } => {
-                Some(permission_request_summary("权限请求", reason))
+                Some(permission_request_summary("permission request", reason))
             }
         };
         let guardian_command = |action: &GuardianAssessmentAction| match action {
@@ -140,12 +140,12 @@ impl ChatWidget {
                     status.details_max_lines,
                 );
             } else if self.status_state.current_status.is_guardian_review() {
-                self.set_status_header(String::from("正在工作"));
+                self.set_status_header(String::from("Working"));
             }
         } else if self.status_state.pending_guardian_review_status.is_empty()
             && self.status_state.current_status.is_guardian_review()
         {
-            self.set_status_header(String::from("正在工作"));
+            self.set_status_header(String::from("Working"));
         }
 
         if ev.status == GuardianAssessmentStatus::Approved {
@@ -159,7 +159,7 @@ impl ChatWidget {
                 history_cell::new_guardian_approved_action_request(summary)
             } else {
                 let summary = serde_json::to_string(&ev.action)
-                    .unwrap_or_else(|_| "<无法显示的自动审查操作>".to_string());
+                    .unwrap_or_else(|_| "<unrenderable guardian action>".to_string());
                 history_cell::new_guardian_approved_action_request(summary)
             };
 
@@ -187,16 +187,16 @@ impl ChatWidget {
                     GuardianAssessmentAction::McpToolCall {
                         server, tool_name, ..
                     } => history_cell::new_guardian_timed_out_action_request(format!(
-                        "Codex 调用 MCP 工具 {server}.{tool_name}"
+                        "codex could call MCP tool {server}.{tool_name}"
                     )),
                     GuardianAssessmentAction::NetworkAccess { target, .. } => {
                         history_cell::new_guardian_timed_out_action_request(format!(
-                            "Codex 访问 {target}"
+                            "codex could access {target}"
                         ))
                     }
                     GuardianAssessmentAction::RequestPermissions { reason, .. } => {
                         history_cell::new_guardian_timed_out_action_request(
-                            permission_request_summary("Codex 请求权限", reason),
+                            permission_request_summary("codex could request permissions", reason),
                         )
                     }
                     GuardianAssessmentAction::Command { .. } => unreachable!(),
@@ -231,14 +231,16 @@ impl ChatWidget {
                 GuardianAssessmentAction::McpToolCall {
                     server, tool_name, ..
                 } => history_cell::new_guardian_denied_action_request(format!(
-                    "Codex 调用 MCP 工具 {server}.{tool_name}"
+                    "codex to call MCP tool {server}.{tool_name}"
                 )),
                 GuardianAssessmentAction::NetworkAccess { target, .. } => {
-                    history_cell::new_guardian_denied_action_request(format!("Codex 访问 {target}"))
+                    history_cell::new_guardian_denied_action_request(format!(
+                        "codex to access {target}"
+                    ))
                 }
                 GuardianAssessmentAction::RequestPermissions { reason, .. } => {
                     history_cell::new_guardian_denied_action_request(permission_request_summary(
-                        "Codex 请求权限",
+                        "codex to request permissions",
                         reason,
                     ))
                 }
@@ -421,8 +423,8 @@ impl ChatWidget {
         let summary = Notification::user_input_request_summary(&ev.questions);
         let title = match (question_count, summary.as_deref()) {
             (1, Some(summary)) => summary.to_string(),
-            (1, None) => "请求回答问题".to_string(),
-            (count, _) => format!("请求回答 {count} 个问题"),
+            (1, None) => "Question requested".to_string(),
+            (count, _) => format!("{count} questions requested"),
         };
         self.notify(Notification::PlanModePrompt { title });
         self.bottom_pane.push_user_input_request(ev);

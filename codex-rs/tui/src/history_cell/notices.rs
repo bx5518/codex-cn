@@ -24,25 +24,25 @@ impl HistoryCell for UpdateAvailableHistoryCell {
         use ratatui_macros::line;
         use ratatui_macros::text;
         let update_instruction = if let Some(update_action) = self.update_action {
-            line!["运行 ", update_action.command_str().cyan(), " 进行更新。"]
+            line!["Run ", update_action.command_str().cyan(), " to update."]
         } else {
             line![
-                "请访问 ",
+                "See ",
                 "https://github.com/openai/codex".cyan().underlined(),
-                " 查看安装选项。"
+                " for installation options."
             ]
         };
 
         let content = text![
             line![
                 padded_emoji("✨").bold().cyan(),
-                "有可用更新！".bold().cyan(),
+                "Update available!".bold().cyan(),
                 " ",
                 format!("{CODEX_CLI_VERSION} -> {}", self.latest_version).bold(),
             ],
             update_instruction,
             "",
-            "查看完整发行说明：",
+            "See full release notes:",
             "https://github.com/openai/codex/releases/latest"
                 .cyan()
                 .underlined(),
@@ -58,16 +58,16 @@ impl HistoryCell for UpdateAvailableHistoryCell {
 
     fn raw_lines(&self) -> Vec<Line<'static>> {
         let update_instruction = if let Some(update_action) = self.update_action {
-            format!("运行 {} 进行更新。", update_action.command_str())
+            format!("Run {} to update.", update_action.command_str())
         } else {
-            "请访问 https://github.com/openai/codex 查看安装选项。".to_string()
+            "See https://github.com/openai/codex for installation options.".to_string()
         };
         vec![
-            Line::from("有可用更新！"),
+            Line::from("Update available!"),
             Line::from(format!("{CODEX_CLI_VERSION} -> {}", self.latest_version)),
             Line::from(update_instruction),
             Line::from(""),
-            Line::from("查看完整发行说明："),
+            Line::from("See full release notes:"),
             Line::from("https://github.com/openai/codex/releases/latest"),
         ]
     }
@@ -132,7 +132,7 @@ impl HistoryCell for CyberPolicyNoticeCell {
         vec![
             Line::from("This chat was flagged for possible cybersecurity risk"),
             Line::from(
-                "  {label}: ",
+                "If this seems wrong, try rephrasing your request. To get authorized for security work, join the Trusted Access for Cyber program.",
             ),
             Line::from(TRUSTED_ACCESS_FOR_CYBER_URL),
         ]

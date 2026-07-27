@@ -65,7 +65,7 @@ pub(crate) fn new_view_image_tool_call(path: AbsolutePathBuf, cwd: &Path) -> Pla
 
     let lines: Vec<Line<'static>> = vec![
         vec!["• ".dim(), "Viewed Image".bold()].into(),
-        vec!["• ".dim(), display_path.dim()].into(),
+        vec!["  └ ".dim(), display_path.dim()].into(),
     ];
 
     PlainHistoryCell { lines }
@@ -86,7 +86,7 @@ pub(crate) fn new_image_generation_call(
         let saved_path = Url::from_file_path(saved_path.as_path())
             .map(|url| url.to_string())
             .unwrap_or_else(|_| saved_path.display().to_string());
-        lines.push(vec!["  └ ".dim(), "已生成图片：".dim(), saved_path.into()].into());
+        lines.push(vec!["  └ ".dim(), "Saved to: ".dim(), saved_path.into()].into());
     }
 
     PlainHistoryCell { lines }

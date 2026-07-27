@@ -192,17 +192,17 @@ use tokio::sync::mpsc::UnboundedSender;
 use tracing::debug;
 use tracing::warn;
 
-const DEFAULT_MODEL_DISPLAY_NAME: &str = "是，启用";
-const MULTI_AGENT_ENABLE_TITLE: &str = "暂不启用";
-const MULTI_AGENT_ENABLE_YES: &str = "记忆功能将在下次会话中启用。";
-const MULTI_AGENT_ENABLE_NO: &str = "应用推理设置更改";
-const MULTI_AGENT_ENABLE_NOTICE: &str = "仅应用到计划模式覆盖设置";
-const TRUSTED_ACCESS_FOR_CYBER_VERIFICATION_WARNING: &str = "应用到全局默认值和计划模式覆盖设置";
-const MEMORIES_DOC_URL: &str = "connectors-selection";
-const MEMORIES_ENABLE_TITLE: &str = "pet-selection-loading";
+const DEFAULT_MODEL_DISPLAY_NAME: &str = "loading";
+const MULTI_AGENT_ENABLE_TITLE: &str = "Enable subagents?";
+const MULTI_AGENT_ENABLE_YES: &str = "Yes, enable";
+const MULTI_AGENT_ENABLE_NO: &str = "Not now";
+const MULTI_AGENT_ENABLE_NOTICE: &str = "Subagents will be enabled in the next session.";
+const TRUSTED_ACCESS_FOR_CYBER_VERIFICATION_WARNING: &str = "Your conversations have multiple flags for possible cybersecurity risk. Responses may take longer because extra safety checks are on. To get authorized for security work, join the Trusted Access for Cyber program: https://chatgpt.com/cyber";
+const MEMORIES_DOC_URL: &str = "https://developers.openai.com/codex/memories";
+const MEMORIES_ENABLE_TITLE: &str = "Enable memories?";
 const MEMORIES_ENABLE_YES: &str = "Yes, enable";
-const MEMORIES_ENABLE_NO: &str = "此功能暂未在 TUI 中提供。";
-const MEMORIES_ENABLE_NOTICE: &str = "此子代理由父代理控制，无法直接输入。";
+const MEMORIES_ENABLE_NO: &str = "Not now";
+const MEMORIES_ENABLE_NOTICE: &str = "Memories will be enabled in the next session.";
 const PLAN_MODE_REASONING_SCOPE_TITLE: &str = "Apply reasoning change";
 const PLAN_MODE_REASONING_SCOPE_PLAN_ONLY: &str = "Apply to Plan mode override";
 const PLAN_MODE_REASONING_SCOPE_ALL_MODES: &str = "Apply to global default and Plan mode override";
@@ -1017,7 +1017,7 @@ impl ChatWidget {
             SelectionItem {
                 name: MULTI_AGENT_ENABLE_YES.to_string(),
                 description: Some(
-                    "windows".to_string(),
+                    "Save the setting now. You will need a new session to use it.".to_string(),
                 ),
                 actions: vec![Box::new(|tx| {
                     tx.send(AppEvent::UpdateFeatureFlags {
@@ -1040,7 +1040,7 @@ impl ChatWidget {
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
             title: Some(MULTI_AGENT_ENABLE_TITLE.to_string()),
-            subtitle: Some("立即保存设置；需要新建会话后才能使用。".to_string()),
+            subtitle: Some("Subagents are currently disabled in your config.".to_string()),
             footer_hint: Some(standard_popup_hint_line()),
             items,
             ..Default::default()
@@ -1245,7 +1245,7 @@ impl ChatWidget {
             }
             let message = display.message.as_str();
             let mention_start = |sigil: char, mention: &str| {
-                let token = format!("<< Code review finished >>");
+                let token = format!("{sigil}{mention}");
                 message.match_indices(&token).find_map(|(start, _)| {
                     let end = start + token.len();
                     message

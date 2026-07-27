@@ -43,7 +43,7 @@ impl WidgetRef for &TrustDirectoryWidget {
 
         column.push(Line::from(vec![
             "> ".into(),
-            "当前目录：".bold(),
+            "You are in ".bold(),
             self.cwd.to_string_lossy().to_string().into(),
         ]));
         column.push("");
@@ -51,7 +51,7 @@ impl WidgetRef for &TrustDirectoryWidget {
         if self.cwd != self.trust_target {
             #[allow(clippy::disallowed_methods)]
             let git_root_warning = Paragraph::new(format!(
-                "注意：当前位于 Git 项目的子目录中。信任设置将应用于仓库根目录：{}",
+                "Note: You’re in a subdirectory of a Git project. Trusting will apply to the repository root: {}",
                 self.trust_target.display()
             ))
             .yellow();
@@ -67,8 +67,9 @@ impl WidgetRef for &TrustDirectoryWidget {
 
         column.push(
             Paragraph::new(
-                "是否信任此目录中的内容？处理不受信任的内容会带来更高的提示词注入风险。\
-                 信任此目录后，将允许加载项目本地配置、钩子和执行策略。"
+                "Do you trust the contents of this directory? Working with untrusted \
+                 contents comes with higher risk of prompt injection. Trusting the \
+                 directory allows project-local config, hooks, and exec policies to load."
                     .to_string(),
             )
             .wrap(Wrap { trim: true })
@@ -79,8 +80,8 @@ impl WidgetRef for &TrustDirectoryWidget {
         column.push("");
 
         let options: Vec<(&str, TrustDirectorySelection)> = vec![
-            ("是，继续", TrustDirectorySelection::Trust),
-            ("否，退出", TrustDirectorySelection::Quit),
+            ("Yes, continue", TrustDirectorySelection::Trust),
+            ("No, quit", TrustDirectorySelection::Quit),
         ];
 
         for (idx, (text, selection)) in options.iter().enumerate() {
@@ -107,12 +108,12 @@ impl WidgetRef for &TrustDirectoryWidget {
 
         column.push(
             Line::from(vec![
-                "按 ".dim(),
+                "Press ".dim(),
                 keys::CONFIRM[0].into(),
                 if self.show_windows_create_sandbox_hint {
-                    " 继续并创建沙箱...".dim()
+                    " to continue and create a sandbox...".dim()
                 } else {
-                    " 继续".dim()
+                    " to continue".dim()
                 },
             ])
             .inset(Insets::tlbr(

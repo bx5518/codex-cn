@@ -66,7 +66,7 @@ pub(super) fn start_headless_chatgpt_login(widget: &mut AuthModeWidget) {
                     &request_frame,
                     &error,
                     &request_id,
-                    format!("account/login/start 返回了意外响应：{other:?}"),
+                    format!("Unexpected account/login/start response: {other:?}"),
                 );
             }
             Err(err) => {
@@ -89,9 +89,9 @@ pub(super) fn render_device_code_login(
     state: &ContinueWithDeviceCodeState,
 ) {
     let banner = if state.is_showing_copyable_auth() {
-        "请在浏览器中完成登录"
+        "Finish signing in via your browser"
     } else {
-        "正在准备设备代码登录"
+        "Preparing device code login"
     };
 
     let mut spans = vec!["  ".into()];
@@ -109,7 +109,7 @@ pub(super) fn render_device_code_login(
     let verification_url = if let (Some(verification_url), Some(user_code)) =
         (&state.verification_url, &state.user_code)
     {
-        lines.push("  1. 在浏览器中打开以下链接并登录".into());
+        lines.push("  1. Open this link in your browser and sign in".into());
         lines.push("".into());
         lines.push(Line::from(vec![
             "  ".into(),
@@ -117,7 +117,7 @@ pub(super) fn render_device_code_login(
         ]));
         lines.push("".into());
         lines.push(
-            "  2. 登录后输入以下一次性代码（15 分钟后过期）".into(),
+            "  2. Enter this one-time code after you are signed in (expires in 15 minutes)".into(),
         );
         lines.push("".into());
         lines.push(Line::from(vec![
@@ -126,22 +126,22 @@ pub(super) fn render_device_code_login(
         ]));
         lines.push("".into());
         lines.push(
-            "  仅当你是在 Codex 中发起此次登录时才继续。如果代码来自网站或其他人，请取消。"
+            "  Device codes are a common phishing target. Never share this code."
                 .dim()
                 .into(),
         );
         lines.push("".into());
         Some(verification_url.clone())
     } else {
-        lines.push("  正在请求一次性代码...".dim().into());
+        lines.push("  Requesting a one-time code...".dim().into());
         lines.push("".into());
         None
     };
 
     lines.push(Line::from(vec![
-        "  按 ".dim(),
+        "  Press ".dim(),
         widget.cancel_binding().into(),
-        " 取消".dim(),
+        " to cancel".dim(),
     ]));
     Paragraph::new(lines)
         .wrap(Wrap { trim: false })

@@ -470,7 +470,7 @@ impl TranscriptOverlay {
         Self {
             view: PagerView::new(
                 Self::render_cells(&transcript_cells, /*highlight_cell*/ None),
-                "会 话 记 录".to_string(),
+                "T R A N S C R I P T".to_string(),
                 usize::MAX,
                 keymap,
             ),
@@ -733,39 +733,39 @@ impl TranscriptOverlay {
                         .into_iter()
                         .chain(first_or_empty(&self.view.keymap.scroll_down))
                         .collect(),
-                    "滚动",
+                    "to scroll",
                 ),
                 (
                     first_or_empty(&self.view.keymap.page_up)
                         .into_iter()
                         .chain(first_or_empty(&self.view.keymap.page_down))
                         .collect(),
-                    "翻页",
+                    "to page",
                 ),
                 (
                     first_or_empty(&self.view.keymap.jump_top)
                         .into_iter()
                         .chain(first_or_empty(&self.view.keymap.jump_bottom))
                         .collect(),
-                    "跳转",
+                    "to jump",
                 ),
             ],
         );
 
         let mut pairs: Vec<(Vec<KeyBinding>, &str)> =
-            vec![(first_or_empty(&self.view.keymap.close), "退出")];
+            vec![(first_or_empty(&self.view.keymap.close), "to quit")];
         if self.highlight_cell.is_some() {
             pairs.push((
                 vec![
                     key_hint::plain(KeyCode::Esc),
                     key_hint::plain(KeyCode::Left),
                 ],
-                "编辑上一条",
+                "to edit prev",
             ));
-            pairs.push((vec![key_hint::plain(KeyCode::Right)], "编辑下一条"));
-            pairs.push((vec![key_hint::plain(KeyCode::Enter)], "编辑消息"));
+            pairs.push((vec![key_hint::plain(KeyCode::Right)], "to edit next"));
+            pairs.push((vec![key_hint::plain(KeyCode::Enter)], "to edit message"));
         } else {
-            pairs.push((vec![key_hint::plain(KeyCode::Esc)], "编辑上一条"));
+            pairs.push((vec![key_hint::plain(KeyCode::Esc)], "to edit prev"));
         }
         render_key_hints(line2, buf, &pairs);
     }

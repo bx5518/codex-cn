@@ -6,7 +6,7 @@
 use super::*;
 
 impl ChatWidget {
-    /// Synchronize the bottom-pane "Invalid prompt: we've limited access to this content for safety reasons." indicator with the current lifecycles.
+    /// Synchronize the bottom-pane "task running" indicator with the current lifecycles.
     ///
     /// The bottom pane only has one running flag, but this module treats it as a derived state of
     /// both the agent turn lifecycle and MCP startup lifecycle.

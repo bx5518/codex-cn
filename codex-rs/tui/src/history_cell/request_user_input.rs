@@ -25,10 +25,10 @@ impl HistoryCell for RequestUserInputResultCell {
             .count();
         let unanswered = total.saturating_sub(answered);
 
-        let mut header = vec!["•".dim(), " ".into(), "问题".bold()];
-        header.push(format!(" 已回答 {answered}/{total}").dim());
+        let mut header = vec!["•".dim(), " ".into(), "Questions".bold()];
+        header.push(format!(" {answered}/{total} answered").dim());
         if self.interrupted {
-            header.push("（已中断）".cyan());
+            header.push(" (interrupted)".cyan());
         }
 
         let mut lines: Vec<Line<'static>> = vec![header.into()];
@@ -47,7 +47,7 @@ impl HistoryCell for RequestUserInputResultCell {
                 Style::default(),
             );
             if answer_missing && let Some(last) = question_lines.last_mut() {
-                last.spans.push("（未回答）".dim());
+                last.spans.push(" (unanswered)".dim());
             }
             lines.extend(question_lines);
 
@@ -58,7 +58,7 @@ impl HistoryCell for RequestUserInputResultCell {
                 lines.extend(wrap_with_prefix(
                     "••••••",
                     width,
-                    "    回答：".dim(),
+                    "    answer: ".dim(),
                     "            ".dim(),
                     Style::default().fg(Color::Cyan),
                 ));
@@ -71,7 +71,7 @@ impl HistoryCell for RequestUserInputResultCell {
                 lines.extend(wrap_with_prefix(
                     &option,
                     width,
-                    "    回答：".dim(),
+                    "    answer: ".dim(),
                     "            ".dim(),
                     Style::default().fg(Color::Cyan),
                 ));
@@ -79,13 +79,13 @@ impl HistoryCell for RequestUserInputResultCell {
             if let Some(note) = note {
                 let (label, continuation, style) = if question.options.is_some() {
                     (
-                        "    备注：".dim(),
+                        "    note: ".dim(),
                         "          ".dim(),
                         Style::default().fg(Color::Cyan),
                     )
                 } else {
                     (
-                        "    回答：".dim(),
+                        "    answer: ".dim(),
                         "            ".dim(),
                         Style::default().fg(Color::Cyan),
                     )
@@ -95,7 +95,7 @@ impl HistoryCell for RequestUserInputResultCell {
         }
 
         if self.interrupted && unanswered > 0 {
-            let summary = format!("已中断，还有 {unanswered} 个问题未回答");
+            let summary = format!("interrupted with {unanswered} unanswered");
             lines.extend(wrap_with_prefix(
                 &summary,
                 width,
@@ -119,9 +119,9 @@ impl HistoryCell for RequestUserInputResultCell {
                     .is_some_and(|answer| !answer.answers.is_empty())
             })
             .count();
-        let mut lines = vec![Line::from(format!("问题：已回答 {answered}/{total}"))];
+        let mut lines = vec![Line::from(format!("Questions {answered}/{total} answered"))];
         if self.interrupted {
-            lines.push(Line::from("（已中断）"));
+            lines.push(Line::from("(interrupted)"));
         }
         for question in &self.questions {
             lines.push(Line::from(question.question.clone()));
@@ -131,20 +131,20 @@ impl HistoryCell for RequestUserInputResultCell {
                 .filter(|answer| !answer.answers.is_empty())
             {
                 if question.is_secret {
-                    lines.push(Line::from("回答：******"));
+                    lines.push(Line::from("answer: ******"));
                 } else {
                     let (options, note) = split_request_user_input_answer(answer);
                     lines.extend(
                         options
                             .into_iter()
-                            .map(|option| Line::from(format!("回答：{option}"))),
+                            .map(|option| Line::from(format!("answer: {option}"))),
                     );
                     if let Some(note) = note {
-                        lines.push(Line::from(format!("备注：{note}")));
+                        lines.push(Line::from(format!("note: {note}")));
                     }
                 }
             } else {
-                lines.push(Line::from("（未回答）"));
+                lines.push(Line::from("(unanswered)"));
             }
         }
         lines

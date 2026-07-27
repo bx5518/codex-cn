@@ -260,7 +260,7 @@ mod tests {
         CwdPromptScreen::new(
             FrameRequester::test_dummy(),
             CwdPromptAction::Resume,
-            "此会话的工作目录".to_string(),
+            "/Users/example/current".to_string(),
             "/Users/example/session".to_string(),
         )
     }
@@ -268,7 +268,7 @@ mod tests {
     #[test]
     fn cwd_prompt_snapshot() {
         let screen = new_prompt();
-        let mut 会话目录 = {action_past}会话中最后记录的工作目录 =
+        let mut terminal =
             Terminal::new(VT100Backend::new(/*width*/ 80, /*height*/ 14)).expect("terminal");
         terminal
             .draw(|frame| frame.render_widget_ref(&screen, frame.area()))

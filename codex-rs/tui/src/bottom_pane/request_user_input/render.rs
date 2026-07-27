@@ -220,7 +220,7 @@ impl RequestUserInputOverlay {
             &layout.rows,
             &layout.state,
             layout.rows.len().max(1),
-            "没有可选项",
+            "No choices",
         );
 
         cursor_y = cursor_y.saturating_add(rows_height);
@@ -322,7 +322,7 @@ impl RequestUserInputOverlay {
                     &option_rows,
                     &options_state,
                     option_rows.len().max(1),
-                    "没有选项",
+                    "No options",
                 );
             }
         }
@@ -350,7 +350,7 @@ impl RequestUserInputOverlay {
         let option_tip = if options_hidden {
             let selected = self.selected_option_index().unwrap_or(0).saturating_add(1);
             let total = self.options_len();
-            Some(super::FooterTip::new(format!("选项 {selected}/{total}")))
+            Some(super::FooterTip::new(format!("option {selected}/{total}")))
         } else {
             None
         };

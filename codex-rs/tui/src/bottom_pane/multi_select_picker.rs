@@ -78,7 +78,7 @@ use crate::text_formatting::truncate_text;
 const ITEM_NAME_TRUNCATE_LEN: usize = 21;
 
 /// Placeholder text shown in the search input when empty.
-const SEARCH_PLACEHOLDER: &str = "输入内容以搜索";
+const SEARCH_PLACEHOLDER: &str = "Type to search";
 
 /// Prefix displayed before the search query (mimics a command prompt).
 const SEARCH_PROMPT_PREFIX: &str = "> ";
@@ -668,7 +668,7 @@ impl Renderable for MultiSelectPicker {
                 &rows.rows,
                 &rows.state,
                 render_area.height as usize,
-                "无匹配项",
+                "no matches",
             );
         }
 
@@ -822,9 +822,9 @@ impl MultiSelectPickerBuilder {
 
         let instructions = if self.instructions.is_empty() {
             let mut spans = vec![
-                "按 ".into(),
+                "Press ".into(),
                 key_hint::plain(KeyCode::Char(' ')).into(),
-                " 切换".into(),
+                " to toggle".into(),
             ];
             if self.ordering_enabled
                 && let (Some(move_left), Some(move_right)) = (
@@ -836,17 +836,17 @@ impl MultiSelectPickerBuilder {
                 spans.push(move_left.into());
                 spans.push("/".into());
                 spans.push(move_right.into());
-                spans.push(" 移动".into());
+                spans.push(" to move".into());
             }
             if let Some(accept) = primary_binding(&self.keymap.accept) {
                 spans.push("; ".into());
                 spans.push(accept.into());
-                spans.push(" 确认并关闭".into());
+                spans.push(" to confirm and close".into());
             }
             if let Some(cancel) = primary_binding(&self.keymap.cancel) {
                 spans.push("; ".into());
                 spans.push(cancel.into());
-                spans.push(" 关闭".into());
+                spans.push(" to close".into());
             }
             spans
         } else {

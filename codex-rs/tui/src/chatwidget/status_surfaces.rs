@@ -99,7 +99,15 @@ impl ChatWidget {
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
                 .is_ok()
         {
-            let message = format!("已忽略无效的状态栏项目：{}。", proper_join(invalid_items));
+            let label = if invalid_items.len() == 1 {
+                "item"
+            } else {
+                "items"
+            };
+            let message = format!(
+                "Ignored invalid status line {label}: {}.",
+                proper_join(invalid_items)
+            );
             self.on_warning(message);
         }
     }
@@ -112,7 +120,15 @@ impl ChatWidget {
                 .compare_exchange(false, true, Ordering::Relaxed, Ordering::Relaxed)
                 .is_ok()
         {
-            let message = format!("已忽略无效的终端标题项目：{}。", proper_join(invalid_items));
+            let label = if invalid_items.len() == 1 {
+                "item"
+            } else {
+                "items"
+            };
+            let message = format!(
+                "Ignored invalid terminal title {label}: {}.",
+                proper_join(invalid_items)
+            );
             self.on_warning(message);
         }
     }
@@ -566,7 +582,7 @@ impl ChatWidget {
                 .and_then(|summary| summary.branch_change_stats.as_ref())
                 .map(|stats| {
                     if stats.additions == 0 && stats.deletions == 0 {
-                        "无更改".to_string()
+                        "No changes".to_string()
                     } else {
                         format!("+{} -{}", stats.additions, stats.deletions)
                     }
@@ -580,15 +596,15 @@ impl ChatWidget {
                 if total <= 0 {
                     None
                 } else {
-                    Some(format!("已用 {}", format_tokens_compact(total)))
+                    Some(format!("{} used", format_tokens_compact(total)))
                 }
             }
             StatusLineItem::ContextRemaining => self
                 .status_line_context_remaining_percent()
-                .map(|remaining| format!("上下文剩余 {remaining}%")),
+                .map(|remaining| format!("Context {remaining}% left")),
             StatusLineItem::ContextUsed => self
                 .status_line_context_used_percent()
-                .map(|used| format!("上下文已用 {used}%")),
+                .map(|used| format!("Context {used}% used")),
             StatusLineItem::FiveHourLimit => {
                 let (window, is_secondary) = self
                     .rate_limit_snapshots_by_limit_id
@@ -608,24 +624,24 @@ impl ChatWidget {
             StatusLineItem::CodexVersion => Some(CODEX_CLI_VERSION.to_string()),
             StatusLineItem::ContextWindowSize => self
                 .status_line_context_window_size()
-                .map(|cws| format!("上下文窗口 {}", format_tokens_compact(cws))),
+                .map(|cws| format!("{} window", format_tokens_compact(cws))),
             StatusLineItem::TotalInputTokens => Some(format!(
-                "输入 {}",
+                "{} in",
                 format_tokens_compact(self.status_line_total_usage().input_tokens)
             )),
             StatusLineItem::TotalOutputTokens => Some(format!(
-                "输出 {}",
+                "{} out",
                 format_tokens_compact(self.status_line_total_usage().output_tokens)
             )),
             StatusLineItem::SessionId => self.thread_id.map(|id| id.to_string()),
             StatusLineItem::FastMode => Some(
                 if self.current_service_tier() == Some(ServiceTier::Fast.request_value()) {
-                    "快速模式已开启".to_string()
+                    "Fast on".to_string()
                 } else {
-                    "快速模式已关闭".to_string()
+                    "Fast off".to_string()
                 },
             ),
-            StatusLineItem::RawOutput => self.raw_output_mode().then(|| "原始输出".to_string()),
+            StatusLineItem::RawOutput => self.raw_output_mode().then(|| "raw output".to_string()),
             StatusLineItem::ThreadTitle => self.thread_name.as_ref().map_or_else(
                 || self.thread_id.map(|id| id.to_string()),
                 |name| {
@@ -780,24 +796,24 @@ impl ChatWidget {
     /// as `Ready` regardless of the last active status bucket.
     pub(super) fn run_state_status_text(&self) -> String {
         if self.mcp_startup_status.is_some() {
-            return "正在启动".to_string();
+            return "Starting".to_string();
         }
 
         match self.status_state.terminal_title_status_kind {
             TerminalTitleStatusKind::Working if !self.bottom_pane.is_task_running() => {
-                "就绪".to_string()
+                "Ready".to_string()
             }
             TerminalTitleStatusKind::WaitingForBackgroundTerminal
                 if !self.bottom_pane.is_task_running() =>
             {
-                "就绪".to_string()
+                "Ready".to_string()
             }
             TerminalTitleStatusKind::Thinking if !self.bottom_pane.is_task_running() => {
-                "就绪".to_string()
+                "Ready".to_string()
             }
-            TerminalTitleStatusKind::Working => "正在工作".to_string(),
-            TerminalTitleStatusKind::WaitingForBackgroundTerminal => "正在等待".to_string(),
-            TerminalTitleStatusKind::Thinking => "正在思考".to_string(),
+            TerminalTitleStatusKind::Working => "Working".to_string(),
+            TerminalTitleStatusKind::WaitingForBackgroundTerminal => "Waiting".to_string(),
+            TerminalTitleStatusKind::Thinking => "Thinking".to_string(),
         }
     }
 
@@ -863,7 +879,7 @@ impl ChatWidget {
         if total == 0 {
             return None;
         }
-        Some(format!("任务 {completed}/{total}"))
+        Some(format!("Tasks {completed}/{total}"))
     }
 
     /// Truncates a title segment by grapheme cluster and appends `...` when needed.
@@ -995,26 +1011,26 @@ fn permissions_display(config: &Config) -> String {
     if let Some(details) = summary.strip_prefix("read-only")
         && !details.contains("(network access enabled)")
     {
-        return "只读".to_string();
+        return "Read Only".to_string();
     }
     if let Some(details) = summary.strip_prefix("workspace-write")
         && !details.contains("(network access enabled)")
     {
-        return "工作区".to_string();
+        return "Workspace".to_string();
     }
     if permission_profile == PermissionProfile::Disabled {
-        return "完全访问".to_string();
+        return "Full Access".to_string();
     }
 
-    "自定义权限".to_string()
+    "Custom permissions".to_string()
 }
 
 fn approval_mode_display(config: &Config) -> String {
     let approval_policy = AskForApproval::from(config.permissions.approval_policy.value());
     if approval_policy == AskForApproval::OnRequest {
         return match config.approvals_reviewer {
-            ApprovalsReviewer::AutoReview => "自动为我审批".to_string(),
-            ApprovalsReviewer::User => "请求审批".to_string(),
+            ApprovalsReviewer::AutoReview => "Approve for me".to_string(),
+            ApprovalsReviewer::User => "Ask for approval".to_string(),
         };
     }
 

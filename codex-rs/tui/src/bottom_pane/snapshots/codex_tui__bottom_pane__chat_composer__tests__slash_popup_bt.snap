@@ -6,4 +6,4 @@ expression: terminal.backend()
 "› /bt                                                       "
 "                                                            "
 "                                                            "
-"  /btw  在临时分支中开始旁路对话                            "
+"  /btw  start a side conversation in an ephemeral fork      "

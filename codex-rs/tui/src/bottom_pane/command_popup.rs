@@ -274,7 +274,7 @@ impl WidgetRef for CommandPopup {
             &rows,
             &self.state,
             MAX_POPUP_ROWS,
-            "无匹配项",
+            "no matches",
             COMMAND_COLUMN_WIDTH,
         );
     }

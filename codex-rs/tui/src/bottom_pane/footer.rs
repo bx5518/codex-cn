@@ -1,4 +1,4 @@
- 提高推理强度 降低推理强度 切换模式 查看完整记录 退出 搜索历史记录 使用外部编辑器编辑 插入文件路径 将消息加入队列 输入 Shell 命令 退出//!what to do nextThe bottom-pane footer renders transient hints and context indicators.
+//! The bottom-pane footer renders transient hints and context indicators.
 //!
 //! The footer is pure rendering: it formats `FooterProps` into `Line`s without mutating any state.
 //! It intentionally does not decide *which* footer content should be shown; that is owned by the
@@ -544,14 +544,14 @@ pub(crate) fn goal_status_indicator_line(
     let label = match indicator {
         GoalStatusIndicator::Active { usage } => {
             if let Some(usage) = usage {
-                format!("目标未完成（{usage}）")
+                format!("Pursuing goal ({usage})")
             } else {
-                "目标已放弃".to_string()
+                "Pursuing goal".to_string()
             }
         }
         GoalStatusIndicator::Paused => "Goal paused (/goal resume)".to_string(),
         GoalStatusIndicator::Blocked => "Goal blocked (/goal resume)".to_string(),
-        GoalStatusIndicator::UsageLimited => "目标已达成（{usage}）".to_string(),
+        GoalStatusIndicator::UsageLimited => "Goal hit usage limits (/goal resume)".to_string(),
         GoalStatusIndicator::BudgetLimited { usage } => {
             if let Some(usage) = usage {
                 format!("Goal unmet ({usage})")
@@ -881,7 +881,7 @@ fn quit_shortcut_reminder_line(key: KeyBinding) -> Line<'static> {
 fn esc_hint_line(esc_backtrack_hint: bool) -> Line<'static> {
     let esc = key_hint::plain(KeyCode::Esc);
     if esc_backtrack_hint {
-        Line::from(vec![esc.into(), " again".into()]).dim()
+        Line::from(vec![esc.into(), " again to edit previous message".into()]).dim()
     } else {
         Line::from(vec![
             esc.into(),

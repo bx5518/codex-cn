@@ -56,12 +56,18 @@ pub fn new_approval_decision_cell(
                 let summary = if let Some(snippet) = non_empty_exec_snippet(&command) {
                     vec![
                         actor.subject().into(),
-                        "已批准".bold(),
-                        " Codex 本次运行 ".into(),
+                        "approved".bold(),
+                        " codex to run ".into(),
                         Span::from(snippet).dim(),
+                        " this time".bold(),
                     ]
                 } else {
-                    vec![actor.subject().into(), "已批准".bold(), "本次请求".into()]
+                    vec![
+                        actor.subject().into(),
+                        "approved".bold(),
+                        " this request".into(),
+                        " this time".bold(),
+                    ]
                 };
                 ("✔ ".green(), summary)
             }
@@ -69,9 +75,10 @@ pub fn new_approval_decision_cell(
                 "✔ ".green(),
                 vec![
                     actor.subject().into(),
-                    "已批准".bold(),
-                    " Codex 本次访问网络目标 ".into(),
+                    "approved".bold(),
+                    " codex network access to ".into(),
                     Span::from(target).dim(),
+                    " this time".bold(),
                 ],
             ),
         },
@@ -83,8 +90,8 @@ pub fn new_approval_decision_cell(
                 "✔ ".green(),
                 vec![
                     actor.subject().into(),
-                    "已批准".bold(),
-                    " Codex 始终运行以下内容开头的命令：".into(),
+                    "approved".bold(),
+                    " codex to always run commands that start with ".into(),
                     snippet,
                 ],
             )
@@ -94,15 +101,17 @@ pub fn new_approval_decision_cell(
                 let summary = if let Some(snippet) = non_empty_exec_snippet(&command) {
                     vec![
                         actor.subject().into(),
-                        "已批准".bold(),
-                        " Codex 在本会话中每次运行 ".into(),
+                        "approved".bold(),
+                        " codex to run ".into(),
                         Span::from(snippet).dim(),
+                        " every time this session".bold(),
                     ]
                 } else {
                     vec![
                         actor.subject().into(),
-                        "已批准".bold(),
-                        "本会话中的每次此类请求".into(),
+                        "approved".bold(),
+                        " this request".into(),
+                        " every time this session".bold(),
                     ]
                 };
                 ("✔ ".green(), summary)
@@ -111,9 +120,10 @@ pub fn new_approval_decision_cell(
                 "✔ ".green(),
                 vec![
                     actor.subject().into(),
-                    "已批准".bold(),
-                    " Codex 在本会话中每次访问网络目标 ".into(),
+                    "approved".bold(),
+                    " codex network access to ".into(),
                     Span::from(target).dim(),
+                    " every time this session".bold(),
                 ],
             ),
         },
@@ -129,8 +139,8 @@ pub fn new_approval_decision_cell(
                     "✔ ".green(),
                     vec![
                         actor.subject().into(),
-                        "已保存".bold(),
-                        " Codex 对以下网络目标的访问规则：".into(),
+                        "persisted".bold(),
+                        " Codex network access to ".into(),
                         Span::from(target).dim(),
                     ],
                 ),
@@ -138,10 +148,10 @@ pub fn new_approval_decision_cell(
                     "✗ ".red(),
                     vec![
                         actor.subject().into(),
-                        "已拒绝".bold(),
-                        " Codex 访问网络目标 ".into(),
+                        "denied".bold(),
+                        " codex network access to ".into(),
                         Span::from(target).dim(),
-                        "，并已保存该规则".into(),
+                        " and saved that rule".into(),
                     ],
                 ),
             }
@@ -153,24 +163,26 @@ pub fn new_approval_decision_cell(
                     match actor {
                         ApprovalDecisionActor::User => vec![
                             actor.subject().into(),
-                            "未批准".bold(),
-                            " Codex 运行 ".into(),
+                            "did not approve".bold(),
+                            " codex to run ".into(),
                             snippet,
                         ],
                         ApprovalDecisionActor::Guardian => vec![
-                            "请求".into(),
-                            "已被拒绝".bold(),
-                            "：Codex 运行 ".into(),
+                            "Request ".into(),
+                            "denied".bold(),
+                            " for codex to run ".into(),
                             snippet,
                         ],
                     }
                 } else {
                     match actor {
-                        ApprovalDecisionActor::User => {
-                            vec![actor.subject().into(), "未批准".bold(), "此请求".into()]
-                        }
+                        ApprovalDecisionActor::User => vec![
+                            actor.subject().into(),
+                            "did not approve".bold(),
+                            " this request".into(),
+                        ],
                         ApprovalDecisionActor::Guardian => {
-                            vec!["请求".into(), "已被拒绝".bold()]
+                            vec!["Request ".into(), "denied".bold()]
                         }
                     }
                 };
@@ -180,8 +192,8 @@ pub fn new_approval_decision_cell(
                 "✗ ".red(),
                 vec![
                     actor.subject().into(),
-                    "未批准".bold(),
-                    " Codex 访问网络目标 ".into(),
+                    "did not approve".bold(),
+                    " codex network access to ".into(),
                     Span::from(target).dim(),
                 ],
             ),
@@ -190,22 +202,26 @@ pub fn new_approval_decision_cell(
             ApprovalDecisionSubject::Command(command) => {
                 let summary = if let Some(snippet) = non_empty_exec_snippet(&command) {
                     vec![
-                        "审查".into(),
-                        "已超时".bold(),
-                        "，Codex 未能运行 ".into(),
+                        "Review ".into(),
+                        "timed out".bold(),
+                        " before codex could run ".into(),
                         Span::from(snippet).dim(),
                     ]
                 } else {
-                    vec!["审查".into(), "已超时".bold(), "，此请求未获批准".into()]
+                    vec![
+                        "Review ".into(),
+                        "timed out".bold(),
+                        " before this request could be approved".into(),
+                    ]
                 };
                 ("✗ ".red(), summary)
             }
             ApprovalDecisionSubject::NetworkAccess { target } => (
                 "✗ ".red(),
                 vec![
-                    "审查".into(),
-                    "已超时".bold(),
-                    "，Codex 未能访问 ".into(),
+                    "Review ".into(),
+                    "timed out".bold(),
+                    " before codex could access ".into(),
                     Span::from(target).dim(),
                 ],
             ),
@@ -215,12 +231,16 @@ pub fn new_approval_decision_cell(
                 let summary = if let Some(snippet) = non_empty_exec_snippet(&command) {
                     vec![
                         actor.subject().into(),
-                        "已取消".bold(),
-                        "运行以下命令的请求：".into(),
+                        "canceled".bold(),
+                        " the request to run ".into(),
                         Span::from(snippet).dim(),
                     ]
                 } else {
-                    vec![actor.subject().into(), "已取消".bold(), "此请求".into()]
+                    vec![
+                        actor.subject().into(),
+                        "canceled".bold(),
+                        " this request".into(),
+                    ]
                 };
                 ("✗ ".red(), summary)
             }
@@ -228,8 +248,8 @@ pub fn new_approval_decision_cell(
                 "✗ ".red(),
                 vec![
                     actor.subject().into(),
-                    "已取消".bold(),
-                    " Codex 访问以下网络目标的请求：".into(),
+                    "canceled".bold(),
+                    " the request for codex network access to ".into(),
                     Span::from(target).dim(),
                 ],
             ),
@@ -252,21 +272,25 @@ pub enum ApprovalDecisionActor {
 impl ApprovalDecisionActor {
     fn subject(self) -> &'static str {
         match self {
-            Self::User => "你",
-            Self::Guardian => "自动审查器",
+            Self::User => "You ",
+            Self::Guardian => "Auto-reviewer ",
         }
     }
 }
 
 pub fn new_guardian_denied_patch_request(files: Vec<String>) -> Box<dyn HistoryCell> {
-    let mut summary = vec!["请求".into(), "已被拒绝".bold(), "：Codex 应用".into()];
+    let mut summary = vec![
+        "Request ".into(),
+        "denied".bold(),
+        " for codex to apply ".into(),
+    ];
     if files.len() == 1 {
-        summary.push("涉及以下文件的补丁：".into());
+        summary.push("a patch touching ".into());
         summary.push(Span::from(files[0].clone()).dim());
     } else {
-        summary.push("涉及 ".into());
+        summary.push("a patch touching ".into());
         summary.push(Span::from(files.len().to_string()).dim());
-        summary.push(" 个文件的补丁".into());
+        summary.push(" files".into());
     }
 
     Box::new(PrefixedWrappedHistoryCell::new(
@@ -278,9 +302,9 @@ pub fn new_guardian_denied_patch_request(files: Vec<String>) -> Box<dyn HistoryC
 
 pub fn new_guardian_denied_action_request(summary: String) -> Box<dyn HistoryCell> {
     let line = Line::from(vec![
-        "请求".into(),
-        "已被拒绝".bold(),
-        "：".into(),
+        "Request ".into(),
+        "denied".bold(),
+        " for ".into(),
         Span::from(summary).dim(),
     ]);
     Box::new(PrefixedWrappedHistoryCell::new(line, "✗ ".red(), "  "))
@@ -288,23 +312,27 @@ pub fn new_guardian_denied_action_request(summary: String) -> Box<dyn HistoryCel
 
 pub fn new_guardian_approved_action_request(summary: String) -> Box<dyn HistoryCell> {
     let line = Line::from(vec![
-        "请求".into(),
-        "已获批准".bold(),
-        "：".into(),
+        "Request ".into(),
+        "approved".bold(),
+        " for ".into(),
         Span::from(summary).dim(),
     ]);
     Box::new(PrefixedWrappedHistoryCell::new(line, "✔ ".green(), "  "))
 }
 
 pub fn new_guardian_timed_out_patch_request(files: Vec<String>) -> Box<dyn HistoryCell> {
-    let mut summary = vec!["审查".into(), "已超时".bold(), "，Codex 未能应用".into()];
+    let mut summary = vec![
+        "Review ".into(),
+        "timed out".bold(),
+        " before codex could apply ".into(),
+    ];
     if files.len() == 1 {
-        summary.push("涉及以下文件的补丁：".into());
+        summary.push("a patch touching ".into());
         summary.push(Span::from(files[0].clone()).dim());
     } else {
-        summary.push("涉及 ".into());
+        summary.push("a patch touching ".into());
         summary.push(Span::from(files.len().to_string()).dim());
-        summary.push(" 个文件的补丁".into());
+        summary.push(" files".into());
     }
 
     Box::new(PrefixedWrappedHistoryCell::new(
@@ -316,9 +344,9 @@ pub fn new_guardian_timed_out_patch_request(files: Vec<String>) -> Box<dyn Histo
 
 pub fn new_guardian_timed_out_action_request(summary: String) -> Box<dyn HistoryCell> {
     let line = Line::from(vec![
-        "审查".into(),
-        "已超时".bold(),
-        "，未能处理：".into(),
+        "Review ".into(),
+        "timed out".bold(),
+        " before ".into(),
         Span::from(summary).dim(),
     ]);
     Box::new(PrefixedWrappedHistoryCell::new(line, "✗ ".red(), "  "))

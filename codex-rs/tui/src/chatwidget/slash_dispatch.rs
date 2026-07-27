@@ -32,9 +32,9 @@ struct PreparedSlashCommandArgs {
 
 const SIDE_STARTING_CONTEXT_LABEL: &str = "Side starting...";
 const SIDE_SLASH_COMMAND_UNAVAILABLE_HINT: &str =
-    "请先按 Ctrl+C 返回主会话。";
-const GOAL_USAGE_HINT: &str = "示例：/goal 提高基准测试覆盖率";
-const RAW_USAGE: &str = "用法：/raw [on|off]";
+    "Press Ctrl+C to return to the main thread first.";
+const GOAL_USAGE_HINT: &str = "Example: /goal improve benchmark coverage";
+const RAW_USAGE: &str = "Usage: /raw [on|off]";
 
 impl ChatWidget {
     /// Dispatch a bare slash command and record its staged local-history entry.
@@ -83,7 +83,7 @@ impl ChatWidget {
         if !self.collaboration_modes_enabled() {
             self.add_info_message(
                 "Collaboration modes are disabled.".to_string(),
-                Some("协作模式已禁用。".to_string()),
+                Some("Enable collaboration modes to use /plan.".to_string()),
             );
             return false;
         }
@@ -92,7 +92,7 @@ impl ChatWidget {
             true
         } else {
             self.add_info_message(
-                "规划模式当前不可用。".to_string(),
+                "Plan mode unavailable right now.".to_string(),
                 /*hint*/ None,
             );
             false
@@ -116,7 +116,7 @@ impl ChatWidget {
         let Some(parent_thread_id) = self.thread_id else {
             let command = cmd.command();
             self.add_error_message(format!(
-                "{GOAL_PREFIX}{}"
+                "'/{command}' is unavailable before the session starts."
             ));
             return;
         };
@@ -166,7 +166,7 @@ impl ChatWidget {
             }
             SlashCommand::Archive => {
                 self.bottom_pane.show_selection_view(SelectionViewParams {
-                    title: Some("归档此会话？".to_string()),
+                    title: Some("Archive this session?".to_string()),
                     subtitle: Some(
                         "Are you sure? This will archive the current session and exit Codex"
                             .to_string(),
@@ -349,7 +349,7 @@ impl ChatWidget {
             }
             SlashCommand::SandboxReadRoot => {
                 self.add_error_message(
-                    "用法：/sandbox-add-read-dir <绝对目录路径>".to_string(),
+                    "Usage: /sandbox-add-read-dir <absolute-directory-path>".to_string(),
                 );
             }
             SlashCommand::Experimental => {
@@ -489,13 +489,13 @@ impl ChatWidget {
                         turn_id: "turn-1".to_string(),
                         changes: HashMap::from([
                             (
-                                PathBuf::from("1"),
+                                PathBuf::from("/tmp/test.txt"),
                                 FileChange::Add {
                                     content: "test".to_string(),
                                 },
                             ),
                             (
-                                PathBuf::from("test"),
+                                PathBuf::from("/tmp/test2.txt"),
                                 FileChange::Update {
                                     unified_diff: "+test\n-test2".to_string(),
                                     move_path: None,
@@ -663,7 +663,7 @@ impl ChatWidget {
                 self.session_telemetry
                     .counter("codex.thread.rename", /*inc*/ 1, &[]);
                 let Some(name) = crate::legacy_core::util::normalize_thread_name(&args) else {
-                    self.add_error_message("debug".to_string());
+                    self.add_error_message("Thread name cannot be empty.".to_string());
                     return;
                 };
                 self.app_event_tx.set_thread_name(name);
@@ -740,7 +740,7 @@ impl ChatWidget {
                 }
                 let objective = args.trim();
                 if objective.is_empty() {
-                    self.add_error_message("resume".to_string());
+                    self.add_error_message("Goal objective must not be empty.".to_string());
                     self.add_info_message(
                         GOAL_USAGE.to_string(),
                         Some(GOAL_USAGE_HINT.to_string()),

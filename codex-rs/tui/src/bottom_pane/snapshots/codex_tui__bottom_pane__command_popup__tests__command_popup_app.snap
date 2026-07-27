@@ -5,8 +5,8 @@ expression: "format!(\"{buf:?}\")"
 Buffer {
     area: Rect { x: 0, y: 0, width: 72, height: 2 },
     content: [
-        "  /app      在 Codex 桌面端继续此会话                                   ",
-        "  /approve  批准重试最近一次被自动审查拒绝的操作                        ",
+        "  /app      continue this session in Codex Desktop                      ",
+        "  /approve  approve one retry of a recent auto-review denial            ",
     ],
     styles: [
         x: 0, y: 0, fg: Reset, bg: Reset, underline: Reset, modifier: NONE,

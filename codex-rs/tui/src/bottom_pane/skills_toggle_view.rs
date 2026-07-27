@@ -33,7 +33,7 @@ use super::scroll_state::ScrollState;
 use super::selection_popup_common::GenericDisplayRow;
 use super::selection_popup_common::render_rows_single_line;
 
-const SEARCH_PLACEHOLDER: &str = "输入内容以搜索技能";
+const SEARCH_PLACEHOLDER: &str = "Type to search skills";
 const SEARCH_PROMPT_PREFIX: &str = "> ";
 
 pub(crate) struct SkillsToggleItem {
@@ -63,8 +63,10 @@ impl SkillsToggleView {
         keymap: ListKeymap,
     ) -> Self {
         let mut header = ColumnRenderable::new();
-        header.push(Line::from("启用/禁用技能".bold()));
-        header.push(Line::from("开启或关闭技能，所做更改会自动保存。".dim()));
+        header.push(Line::from("Enable/Disable Skills".bold()));
+        header.push(Line::from(
+            "Turn skills on or off. Your changes are saved automatically.".dim(),
+        ));
 
         let mut view = Self {
             items,
@@ -371,7 +373,7 @@ impl Renderable for SkillsToggleView {
                 &rows,
                 &self.state,
                 render_area.height as usize,
-                "无匹配项",
+                "no matches",
             );
         }
 
@@ -392,29 +394,29 @@ fn skills_toggle_hint_line(keymap: &ListKeymap) -> Line<'static> {
 
     match (accept, cancel) {
         (Some(accept), Some(cancel)) => Line::from(vec![
-            "按 ".into(),
+            "Press ".into(),
             space.into(),
-            " 或 ".into(),
+            " or ".into(),
             accept.into(),
-            " 切换；按 ".into(),
+            " to toggle; ".into(),
             cancel.into(),
-            " 关闭".into(),
+            " to close".into(),
         ]),
         (Some(accept), None) => Line::from(vec![
-            "按 ".into(),
+            "Press ".into(),
             space.into(),
-            " 或 ".into(),
+            " or ".into(),
             accept.into(),
-            " 切换".into(),
+            " to toggle".into(),
         ]),
         (None, Some(cancel)) => Line::from(vec![
-            "按 ".into(),
+            "Press ".into(),
             space.into(),
-            " 切换；按 ".into(),
+            " to toggle; ".into(),
             cancel.into(),
-            " 关闭".into(),
+            " to close".into(),
         ]),
-        (None, None) => Line::from(vec!["按 ".into(), space.into(), " 切换".into()]),
+        (None, None) => Line::from(vec!["Press ".into(), space.into(), " to toggle".into()]),
     }
 }
 

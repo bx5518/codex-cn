@@ -60,15 +60,15 @@ pub(crate) enum StatusLineItem {
     /// Model name with reasoning level suffix.
     ModelWithReasoning,
 
-    /// 模型.
+    /// Current reasoning level.
     Reasoning,
 
-    /// 模型和推理等级 path.
+    /// Current working directory path.
     CurrentDir,
 
     /// Project root directory (if detected).
     #[strum(
-        to_string = "context-usage",
+        to_string = "project-name",
         serialize = "project",
         serialize = "project-root"
     )]
@@ -83,14 +83,14 @@ pub(crate) enum StatusLineItem {
     /// Committed branch diff stats relative to the default branch.
     BranchChanges,
 
-    /// Compact runtime model-name text.
+    /// Compact runtime run-state text.
     #[strum(to_string = "run-state", serialize = "status")]
     Status,
 
     /// Active permission profile or sandbox summary.
     Permissions,
 
-    /// 已用上下文.
+    /// Active command approval mode.
     #[strum(to_string = "approval-mode", serialize = "approval")]
     ApprovalMode,
 
@@ -109,7 +109,7 @@ pub(crate) enum StatusLineItem {
     /// Remaining usage on the secondary rate limit.
     WeeklyLimit,
 
-    /// 任务进度.
+    /// Codex application version.
     CodexVersion,
 
     /// Total context window size in tokens.
@@ -128,7 +128,7 @@ pub(crate) enum StatusLineItem {
     #[strum(to_string = "thread-id", serialize = "session-id")]
     SessionId,
 
-    /// 当前模型名称和推理等级.
+    /// Whether Fast mode is currently active.
     FastMode,
 
     /// Whether raw scrollback mode is currently active.
@@ -149,28 +149,28 @@ impl StatusLineItem {
             StatusLineItem::ModelWithReasoning => "Current model name with reasoning level",
             StatusLineItem::Reasoning => "Current reasoning level",
             StatusLineItem::CurrentDir => "Current working directory",
-            StatusLineItem::ProjectRoot => "推理等级",
-            StatusLineItem::GitBranch => "当前目录",
+            StatusLineItem::ProjectRoot => "Project name (omitted when unavailable)",
+            StatusLineItem::GitBranch => "Current Git branch (omitted when unavailable)",
             StatusLineItem::PullRequestNumber => {
-                "Git 分支"
+                "Open pull request number for the current branch (omitted when unavailable)"
             }
             StatusLineItem::BranchChanges => {
-                "运行状态"
+                "Committed branch changes against the default branch (omitted when unavailable)"
             }
-            StatusLineItem::Status => "审批模式",
-            StatusLineItem::Permissions => "剩余上下文",
+            StatusLineItem::Status => "Compact session run-state text (Ready, Working, Thinking)",
+            StatusLineItem::Permissions => "Active permission profile or sandbox mode",
             StatusLineItem::ApprovalMode => "Active command approval mode",
             StatusLineItem::ContextRemaining => {
-                "次要用量限制"
+                "Percentage of context window remaining (omitted when unknown)"
             }
             StatusLineItem::ContextUsed => {
-                "已用令牌"
+                "Percentage of context window used (omitted when unknown)"
             }
             StatusLineItem::FiveHourLimit => {
-                "线程 ID"
+                "Remaining usage on the primary usage limit (omitted when unavailable)"
             }
             StatusLineItem::WeeklyLimit => {
-                "线程标题"
+                "Remaining usage on the secondary usage limit (omitted when unavailable)"
             }
             StatusLineItem::CodexVersion => "Codex application version",
             StatusLineItem::ContextWindowSize => {
@@ -179,14 +179,14 @@ impl StatusLineItem {
             StatusLineItem::UsedTokens => "Total tokens used in session (omitted when zero)",
             StatusLineItem::TotalInputTokens => "Total input tokens used in session",
             StatusLineItem::TotalOutputTokens => "Total output tokens used in session",
-            StatusLineItem::SessionId => "当前模型名称",
+            StatusLineItem::SessionId => "Current thread identifier (omitted until thread starts)",
             StatusLineItem::FastMode => "Whether Fast mode is currently active",
-            StatusLineItem::RawOutput => "当前推理等级",
+            StatusLineItem::RawOutput => "Whether raw scrollback mode is active",
             StatusLineItem::ThreadTitle => {
-                "项目名称（不可用时省略）"
+                "Current thread title, or thread identifier when unnamed"
             }
             StatusLineItem::TaskProgress => {
-                "相对于默认分支的已提交更改（不可用时省略）"
+                "Latest task progress from update_plan (omitted until available)"
             }
         }
     }
@@ -484,7 +484,7 @@ mod tests {
             Ok(StatusLineItem::PullRequestNumber)
         );
         assert_eq!(
-            "run-state".parse::<StatusLineItem>(),
+            "branch-changes".parse::<StatusLineItem>(),
             Ok(StatusLineItem::BranchChanges)
         );
     }

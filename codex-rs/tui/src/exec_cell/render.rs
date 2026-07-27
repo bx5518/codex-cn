@@ -73,9 +73,9 @@ fn format_unified_exec_interaction(command: &[String], input: Option<&str>) -> S
     match input {
         Some(data) if !data.is_empty() => {
             let preview = summarize_interaction_input(data);
-            format!("已与 `{command_display}` 交互，发送了 `{preview}`")
+            format!("Interacted with `{command_display}`, sent `{preview}`")
         }
-        _ => format!("已等待 `{command_display}`"),
+        _ => format!("Waited for `{command_display}`"),
     }
 }
 
@@ -229,7 +229,7 @@ impl HistoryCell for ExecCell {
                 let duration = call
                     .duration
                     .map(format_duration)
-                    .unwrap_or_else(|| "未知".to_string());
+                    .unwrap_or_else(|| "unknown".to_string());
                 let mut result: Line = if output.exit_code == 0 {
                     Line::from("✓".green().bold())
                 } else {
@@ -252,7 +252,7 @@ impl HistoryCell for ExecCell {
 
 impl ExecCell {
     fn output_ellipsis_text(omitted: usize) -> String {
-        format!("… 另有 {omitted} 行（{TRANSCRIPT_HINT}）")
+        format!("… +{omitted} lines ({TRANSCRIPT_HINT})")
     }
 
     fn output_ellipsis_line(omitted: usize) -> Line<'static> {
@@ -269,9 +269,9 @@ impl ExecCell {
             },
             " ".into(),
             if self.is_active() {
-                "正在探索".bold()
+                "Exploring".bold()
             } else {
-                "已探索".bold()
+                "Explored".bold()
             },
         ]));
 
@@ -313,7 +313,7 @@ impl ExecCell {
                     })
                     .unique();
                 vec![(
-                    "读取",
+                    "Read",
                     Itertools::intersperse(names.into_iter().map(Into::into), ", ".dim()).collect(),
                 )]
             } else {
@@ -321,23 +321,23 @@ impl ExecCell {
                 for parsed in &call.parsed {
                     match parsed {
                         ParsedCommand::Read { name, .. } => {
-                            lines.push(("读取", vec![name.clone().into()]));
+                            lines.push(("Read", vec![name.clone().into()]));
                         }
                         ParsedCommand::ListFiles { cmd, path } => {
-                            lines.push(("列出", vec![path.clone().unwrap_or(cmd.clone()).into()]));
+                            lines.push(("List", vec![path.clone().unwrap_or(cmd.clone()).into()]));
                         }
                         ParsedCommand::Search { cmd, query, path } => {
                             let spans = match (query, path) {
                                 (Some(q), Some(p)) => {
-                                    vec![q.clone().into(), "，位置：".dim(), p.clone().into()]
+                                    vec![q.clone().into(), " in ".dim(), p.clone().into()]
                                 }
                                 (Some(q), None) => vec![q.clone().into()],
                                 _ => vec![cmd.clone().into()],
                             };
-                            lines.push(("搜索", spans));
+                            lines.push(("Search", spans));
                         }
                         ParsedCommand::Unknown { cmd } => {
-                            lines.push(("运行", vec![cmd.clone().into()]));
+                            lines.push(("Run", vec![cmd.clone().into()]));
                         }
                     }
                 }
@@ -377,11 +377,11 @@ impl ExecCell {
         let title = if is_interaction {
             ""
         } else if self.is_active() {
-            "正在运行"
+            "Running"
         } else if call.is_user_shell_command() {
-            "你运行了"
+            "You ran"
         } else {
-            "已运行"
+            "Ran"
         };
 
         let mut header_line = if is_interaction {

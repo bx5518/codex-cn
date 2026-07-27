@@ -144,7 +144,7 @@ impl ChatWidget {
 
         let header = self.model_menu_header(
             "Select Model",
-            "选择指定模型和推理等级（当前：{current_label}）",
+            "Pick a quick auto mode or browse all models.",
         );
         self.bottom_pane.show_selection_view(SelectionViewParams {
             footer_hint: Some(standard_popup_hint_line()),
@@ -290,7 +290,7 @@ impl ChatWidget {
                     "built-in Plan default ({})",
                     Self::reasoning_effort_sentence_label(plan_effort)
                 ),
-                None => "所选推理设置".to_string(),
+                None => "built-in Plan default (no reasoning)".to_string(),
             }
         } else {
             "built-in Plan default".to_string()

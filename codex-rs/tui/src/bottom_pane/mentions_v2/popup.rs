@@ -146,9 +146,9 @@ impl FileSearch {
 
     fn empty_message(&self) -> &'static str {
         if self.waiting {
-            "正在加载..."
+            "loading..."
         } else {
-            "无匹配项"
+            "no matches"
         }
     }
 }

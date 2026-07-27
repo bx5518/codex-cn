@@ -1,4 +1,4 @@
-//! Helpers for rendering and navigating multi-已恢复 state in the TUI.
+//! Helpers for rendering and navigating multi-agent state in the TUI.
 //!
 //! This module owns the shared presentation contracts for multi-agent history rows, `/agent` picker
 //! entries, and the fast-switch keyboard shortcuts. Higher-level coordination, such as deciding
@@ -33,7 +33,7 @@ const COLLAB_AGENT_RESPONSE_PREVIEW_GRAPHEMES: usize = 240;
 pub(crate) struct AgentPickerThreadEntry {
     /// Human-friendly nickname shown in picker rows and footer labels.
     pub(crate) agent_nickname: Option<String>,
-    /// Agent type shown in brackets when present, for example `valid robie thread id`.
+    /// Agent type shown in brackets when present, for example `worker`.
     pub(crate) agent_role: Option<String>,
     /// Whether the thread has emitted a close event and should render dimmed.
     pub(crate) is_closed: bool,
@@ -98,7 +98,7 @@ pub(crate) fn next_agent_shortcut() -> crate::key_hint::KeyBinding {
     crate::key_hint::alt(KeyCode::Right)
 }
 
-/// Matches the canonical "智能体" binding plus platform-specific fallbacks that keep agent
+/// Matches the canonical "previous agent" binding plus platform-specific fallbacks that keep agent
 /// navigation working when enhanced key reporting is unavailable.
 pub(crate) fn previous_agent_shortcut_matches(
     key_event: KeyEvent,
@@ -323,7 +323,7 @@ fn waiting_begin(
             /*spawn_request*/ None,
         ),
         [] => title_text("Waiting for agents"),
-        _ => title_text(format!("已启动 ", receiver_agents.len())),
+        _ => title_text(format!("Waiting for {} agents", receiver_agents.len())),
     };
 
     let details = if receiver_agents.len() > 1 {
@@ -615,7 +615,7 @@ mod tests {
     #[test]
     fn collab_events_snapshot() {
         let sender_thread_id = ThreadId::from_string("00000000-0000-0000-0000-000000000001")
-            .expect("call-close");
+            .expect("valid sender thread id");
         let robie_id = ThreadId::from_string("00000000-0000-0000-0000-000000000002")
             .expect("valid robie thread id");
         let bob_id = ThreadId::from_string("00000000-0000-0000-0000-000000000003")
@@ -629,7 +629,7 @@ mod tests {
                 sender_thread_id: sender_thread_id.to_string(),
                 receiver_thread_ids: vec![robie_id.to_string()],
                 prompt: Some("Compute 11! and reply with just the integer result.".to_string()),
-                model: Some("已中断".to_string()),
+                model: Some("gpt-5".to_string()),
                 reasoning_effort: Some(ReasoningEffortConfig::High),
                 agents_states: HashMap::from([(
                     robie_id.to_string(),
@@ -648,7 +648,7 @@ mod tests {
                 status: CollabAgentToolCallStatus::Completed,
                 sender_thread_id: sender_thread_id.to_string(),
                 receiver_thread_ids: vec![robie_id.to_string()],
-                prompt: Some("未找到".to_string()),
+                prompt: Some("Please continue and return the answer only.".to_string()),
                 model: None,
                 reasoning_effort: None,
                 agents_states: HashMap::from([(
@@ -659,7 +659,7 @@ mod tests {
             /*cached_spawn_request*/ None,
             |thread_id| metadata_for(thread_id, robie_id, bob_id),
         )
-        .expect(" - ");
+        .expect("send-input item renders");
 
         let waiting = tool_call_history_cell(
             &ThreadItem::CollabAgentToolCall {
@@ -695,14 +695,14 @@ mod tests {
                     ),
                     (
                         bob_id.to_string(),
-                        agent_state(CollabAgentStatus::Errored, Some("00000000-0000-0000-0000-000000000002")),
+                        agent_state(CollabAgentStatus::Errored, Some("tool timeout")),
                     ),
                 ]),
             },
             /*cached_spawn_request*/ None,
             |thread_id| metadata_for(thread_id, robie_id, bob_id),
         )
-        .expect("call-spawn");
+        .expect("wait end item renders");
 
         let close = tool_call_history_cell(
             &ThreadItem::CollabAgentToolCall {
@@ -722,7 +722,7 @@ mod tests {
             /*cached_spawn_request*/ None,
             |thread_id| metadata_for(thread_id, robie_id, bob_id),
         )
-        .expect("call-send");
+        .expect("close item renders");
 
         let snapshot = [spawn, send, waiting, finished, close]
             .iter()
@@ -865,7 +865,7 @@ mod tests {
             }
         } else if thread_id == bob_id {
             AgentMetadata {
-                agent_nickname: Some("00000000-0000-0000-0000-000000000002".to_string()),
+                agent_nickname: Some("Bob".to_string()),
                 agent_role: Some("worker".to_string()),
             }
         } else {

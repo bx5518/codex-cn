@@ -126,11 +126,11 @@ impl App {
     pub(super) fn thread_label(&self, thread_id: ThreadId) -> String {
         let is_primary = self.primary_thread_id == Some(thread_id);
         let fallback_label = if is_primary {
-            "主智能体 [默认]".to_string()
+            "Main [default]".to_string()
         } else {
             let thread_id = thread_id.to_string();
             let short_id: String = thread_id.chars().take(8).collect();
-            format!("智能体（{short_id}）")
+            format!("Agent ({short_id})")
         };
         if let Some(entry) = self.agent_navigation.get(&thread_id) {
             let label = format_agent_picker_item_name(
@@ -138,7 +138,7 @@ impl App {
                 entry.agent_role.as_deref(),
                 is_primary,
             );
-            if label == "智能体" {
+            if label == "Agent" {
                 let thread_id = thread_id.to_string();
                 let short_id: String = thread_id.chars().take(8).collect();
                 format!("{label} ({short_id})")
@@ -169,7 +169,7 @@ impl App {
         };
 
         self.chat_widget.add_info_message(
-            format!("当前已在查看 {}。", target_session.display_label()),
+            format!("Already viewing {}.", target_session.display_label()),
             /*hint*/ None,
         );
         true

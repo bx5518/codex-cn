@@ -702,7 +702,7 @@ fn hook_completed_bullet(status: HookRunStatus, entries: &[HookOutputEntry]) -> 
                 .iter()
                 .any(|entry| entry.kind == HookOutputEntryKind::Warning)
             {
-                ": ".bold()
+                "•".bold()
             } else {
                 "•".green().bold()
             }
@@ -718,7 +718,7 @@ fn hook_output_prefix(kind: HookOutputEntryKind) -> &'static str {
         HookOutputEntryKind::Stop => "stop: ",
         HookOutputEntryKind::Feedback => "feedback: ",
         HookOutputEntryKind::Context => "hook context: ",
-        HookOutputEntryKind::Error => "正在运行 {label} 钩子",
+        HookOutputEntryKind::Error => "error: ",
     }
 }
 
@@ -797,7 +797,7 @@ mod tests {
             line_texts(&cell.display_lines(/*width*/ 80)),
             vec![
                 "• PostToolUse hook (completed)".to_string(),
-                "•".to_string(),
+                "  warning: Heads up".to_string(),
                 "    Review generated files".to_string(),
             ]
         );
@@ -806,7 +806,7 @@ mod tests {
     #[test]
     fn pending_hook_does_not_animate_transcript() {
         let cell =
-            HookCell::new_active(hook_run_summary("会话开始"), /*animations_enabled*/ true);
+            HookCell::new_active(hook_run_summary("hook-1"), /*animations_enabled*/ true);
 
         assert_eq!(cell.transcript_animation_tick(), None);
     }
@@ -850,7 +850,7 @@ mod tests {
 
         assert_eq!(
             rendered,
-            vec!["•".to_string()]
+            vec!["Running PostToolUse hook: checking output policy".to_string()]
         );
     }
 

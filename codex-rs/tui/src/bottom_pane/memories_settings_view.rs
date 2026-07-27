@@ -78,20 +78,20 @@ impl MemoriesSettingsView {
             items: vec![
                 MemoriesMenuItem::Setting {
                     setting: MemoriesSetting::Use,
-                    name: "使用记忆",
-                    description: "在后续线程中使用记忆；从下个线程开始生效。",
+                    name: "Use memories",
+                    description: "Use memories in the following threads. Applied at next thread.",
                     enabled: use_memories,
                 },
                 MemoriesMenuItem::Setting {
                     setting: MemoriesSetting::Generate,
-                    name: "生成记忆",
-                    description: "从后续线程生成记忆，包括当前线程。",
+                    name: "Generate memories",
+                    description: "Generate memories from the following threads. Current thread included.",
                     enabled: generate_memories,
                 },
                 MemoriesMenuItem::Action {
                     action: MemoriesAction::Reset,
-                    name: "重置所有记忆",
-                    description: "清除本地记忆文件和摘要，不影响现有线程。",
+                    name: "Reset all memories",
+                    description: "Clear local memory files and summaries. Existing threads stay intact.",
                 },
             ],
             state: ScrollState::new(),
@@ -99,7 +99,7 @@ impl MemoriesSettingsView {
             complete: false,
             app_event_tx,
             docs_link: Line::from(vec![
-                "了解更多：".dim(),
+                "Learn more: ".dim(),
                 MEMORIES_DOC_URL.cyan().underlined(),
             ]),
             keymap,
@@ -114,18 +114,19 @@ impl MemoriesSettingsView {
 
     fn settings_header(&self) -> ColumnRenderable<'_> {
         let mut header = ColumnRenderable::new();
-        header.push(Line::from("记忆".bold()));
+        header.push(Line::from("Memories".bold()));
         header.push(Line::from(
-            "选择 Codex 使用和创建记忆的方式；更改将保存到 config.toml。".dim(),
+            "Choose how Codex uses and creates memories. Changes are saved to config.toml".dim(),
         ));
         header
     }
 
     fn reset_confirmation_header(&self) -> ColumnRenderable<'_> {
         let mut header = ColumnRenderable::new();
-        header.push(Line::from("重置所有记忆？".bold()));
+        header.push(Line::from("Reset all memories?".bold()));
         header.push(Line::from(
-            "这将清除当前 Codex 目录中的本地记忆文件和 rollout 摘要。".dim(),
+            "This clears local memory files and rollout summaries for the current Codex home."
+                .dim(),
         ));
         header
     }
@@ -148,7 +149,7 @@ impl MemoriesSettingsView {
 
     fn build_rows(&self) -> Vec<GenericDisplayRow> {
         if let Some(state) = self.reset_confirmation.as_ref() {
-            return ["重置所有记忆", "返回"]
+            return ["Reset all memories", "Go back"]
                 .into_iter()
                 .enumerate()
                 .map(|(idx, name)| GenericDisplayRow {
@@ -158,8 +159,8 @@ impl MemoriesSettingsView {
                         format!("  {name}")
                     },
                     description: Some(match idx {
-                        0 => "删除本地记忆文件和 rollout 摘要。".to_string(),
-                        1 => "返回记忆设置。".to_string(),
+                        0 => "Delete local memory files and rollout summaries.".to_string(),
+                        1 => "Return to memory settings.".to_string(),
                         _ => unreachable!("reset confirmation only renders two rows"),
                     }),
                     ..Default::default()
@@ -415,7 +416,7 @@ impl Renderable for MemoriesSettingsView {
                 &rows,
                 self.active_state(),
                 MAX_POPUP_ROWS,
-                "  没有可用的记忆设置",
+                "  No memory settings available",
             );
         }
         if self.reset_confirmation.is_none() {
@@ -460,10 +461,10 @@ impl Renderable for MemoriesSettingsView {
 
 fn memories_settings_hint_line() -> Line<'static> {
     Line::from(vec![
-        "按 ".into(),
+        "Press ".into(),
         key_hint::plain(KeyCode::Char(' ')).into(),
-        " 切换；按 ".into(),
+        " to toggle; ".into(),
         key_hint::plain(KeyCode::Enter).into(),
-        " 保存或选择".into(),
+        " to save or select".into(),
     ])
 }

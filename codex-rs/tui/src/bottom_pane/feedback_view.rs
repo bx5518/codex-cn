@@ -1,4 +1,4 @@
-  • use codex_feedback::DOCTOR_REPORT_ATTACHMENT_FILENAME;
+use codex_feedback::DOCTOR_REPORT_ATTACHMENT_FILENAME;
 use codex_feedback::FEEDBACK_DIAGNOSTICS_ATTACHMENT_FILENAME;
 use codex_feedback::FeedbackDiagnostics;
 use codex_feedback::WINDOWS_SANDBOX_LOG_ATTACHMENT_FILENAME;
@@ -29,15 +29,15 @@ use super::textarea::TextArea;
 use super::textarea::TextAreaState;
 
 const BASE_CLI_BUG_ISSUE_URL: &str =
-  请分享以下内容，并补充问题说明："https://github.com/openai/codex/issues/new?template=3-cli.yml";
+    "https://github.com/openai/codex/issues/new?template=3-cli.yml";
 /// Internal routing link for employee feedback follow-ups. This must not be shown to external users.
-const CODEX_FEEDBACK_INTERNAL_URL: &str = "https://github.com/openai/codex/issues/new?template=3-cli.yml";
+const CODEX_FEEDBACK_INTERNAL_URL: &str = "http://go/codex-feedback-internal";
 
 /// The target audience for feedback follow-up instructions.
 ///
 /// This is used strictly for messaging/links after feedback upload completes. It
 /// must not change feedback upload behavior itself.
-#[derive(Clone, Copy, Debad_result, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum FeedbackAudience {
     OpenAiEmployee,
     External,
@@ -109,7 +109,7 @@ impl BottomPaneView for FeedbackNoteView {
             } => {
                 self.textarea.input(key_event);
             }
-            bug => {
+            other => {
                 self.textarea.input(other);
             }
         }
@@ -303,7 +303,7 @@ pub(crate) fn feedback_classification(category: FeedbackCategory) -> &'static st
         FeedbackCategory::BadResult => "bad_result",
         FeedbackCategory::GoodResult => "good_result",
         FeedbackCategory::Bug => "bug",
-        FeedbackCategory::SafetyCheck => "good_result",
+        FeedbackCategory::SafetyCheck => "safety_check",
         FeedbackCategory::Other => "other",
     }
 }
@@ -317,14 +317,14 @@ pub(crate) fn feedback_success_cell(
     let prefix = if include_logs {
         "• Feedback uploaded."
     } else {
-        "• 反馈已上传。"
+        "• Feedback recorded (no logs)."
     };
     let issue_url = issue_url_for_category(category, thread_id, feedback_audience);
     let mut lines = vec![Line::from(match issue_url.as_ref() {
         Some(_) if feedback_audience == FeedbackAudience::OpenAiEmployee => {
             format!("{prefix} Please report this in #codex-feedback:")
         }
-        Some(_) => format!("{prefix} 请在 #codex-feedback 中报告："),
+        Some(_) => format!("{prefix} Please open an issue using the following URL:"),
         None => format!("{prefix} Thanks for the feedback!"),
     })];
     match issue_url {
@@ -333,7 +333,7 @@ pub(crate) fn feedback_success_cell(
                 "".into(),
                 Line::from(vec!["  ".into(), url.cyan().underlined()]),
                 "".into(),
-                Line::from("  "),
+                Line::from("  Share this and add some info about your problem:"),
                 Line::from(vec![
                     "    ".into(),
                     format!("https://go/codex-feedback/{thread_id}").bold(),
@@ -346,9 +346,9 @@ pub(crate) fn feedback_success_cell(
                 Line::from(vec!["  ".into(), url.cyan().underlined()]),
                 "".into(),
                 Line::from(vec![
-                    "".into(),
+                    "  Or mention your thread ID ".into(),
                     thread_id.to_string().bold(),
-                    "  或在现有问题中提及线程 ID ".into(),
+                    " in an existing issue.".into(),
                 ]),
             ]);
         }
@@ -503,8 +503,8 @@ pub(crate) fn feedback_upload_consent_params(
     let mut header_lines: Vec<Box<dyn crate::render::renderable::Renderable>> = vec![
         Line::from("Upload logs?".bold()).into(),
         Line::from("").into(),
-        Line::from("上传日志？".dim()).into(),
-        Line::from(vec!["{CODEX_APPS_TOOLS_CACHE_ATTACHMENT_FILENAME}（如有）".into(), "codex-logs.log".into()]).into(),
+        Line::from("The following files will be sent:".dim()).into(),
+        Line::from(vec!["  • ".into(), "codex-logs.log".into()]).into(),
         Line::from(vec![
             "  • ".into(),
             DOCTOR_REPORT_ATTACHMENT_FILENAME.into(),
@@ -706,7 +706,7 @@ mod tests {
             tx,
             FeedbackCategory::Bug,
             Some(std::path::PathBuf::from("rollout.jsonl")),
-            Some("feedback_view_with_connectivity_diagnostics".to_string()),
+            Some("auto-review-rollout.jsonl".to_string()),
             /*include_windows_sandbox_log*/ false,
             &FeedbackDiagnostics::default(),
         );
@@ -724,7 +724,7 @@ mod tests {
             tx,
             FeedbackCategory::Bug,
             Some(std::path::PathBuf::from("rollout.jsonl")),
-            Some("feedback_upload_consent_lists_doctor_report".to_string()),
+            Some("auto-review-rollout.jsonl".to_string()),
             /*include_windows_sandbox_log*/ true,
             &FeedbackDiagnostics::default(),
         );
@@ -743,7 +743,7 @@ mod tests {
         let tx = AppEventSender::new(tx_raw);
         let mut view = FeedbackNoteView::new(
             FeedbackCategory::Bug,
-            Some("feedback_upload_consent_lists_windows_sandbox_log_when_included".to_string()),
+            Some("turn-123".to_string()),
             tx,
             /*include_logs*/ true,
         );
@@ -818,7 +818,7 @@ mod tests {
     fn issue_url_available_for_bug_bad_result_safety_check_and_other() {
         let bug_url = issue_url_for_category(
             FeedbackCategory::Bug,
-            "t",
+            "thread-1",
             FeedbackAudience::OpenAiEmployee,
         );
         let expected_slack_url = "http://go/codex-feedback-internal".to_string();

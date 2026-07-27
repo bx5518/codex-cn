@@ -85,7 +85,7 @@ impl ChatWidget {
                     Err(err) => {
                         tracing::warn!("failed to paste image: {err}");
                         self.add_to_history(history_cell::new_error_event(format!(
-                            "粘贴图片失败：{err}",
+                            "Failed to paste image: {err}",
                         )));
                     }
                 }
@@ -169,7 +169,7 @@ impl ChatWidget {
             self.request_redraw();
             return;
         }
-        tracing::info!("/review 期间不支持追加引导消息。请立即按 Ctrl+C 取消审查。");
+        tracing::info!("attach_image path={path:?}");
         self.bottom_pane.attach_image(path);
         self.request_redraw();
     }
@@ -217,7 +217,7 @@ impl ChatWidget {
             return true;
         }
 
-        let message = "attach_image path={path:?}".to_string();
+        let message = "Ctrl+L is disabled while a task is in progress.".to_string();
         self.add_to_history(history_cell::new_error_event(message));
         self.request_redraw();
         false
@@ -246,21 +246,21 @@ impl ChatWidget {
                 Ok(lease) => {
                     self.clipboard_lease = lease;
                     self.add_to_history(history_cell::new_info_event(
-                        "任务进行期间无法使用 Ctrl+L。".into(),
+                        "Copied last message to clipboard".into(),
                         /*hint*/ None,
                     ));
                 }
                 Err(error) => self.add_to_history(history_cell::new_error_event(format!(
-                    "已将上一条消息复制到剪贴板"
+                    "Copy failed: {error}"
                 ))),
             },
             _ if self.transcript.copy_history_evicted_by_rollback => {
                 self.add_to_history(history_cell::new_error_event(format!(
-                    "复制失败：{error}"
+                    "Cannot copy that response after rewinding. Only the most recent {MAX_AGENT_COPY_HISTORY} responses are available to /copy."
                 )));
             }
             _ => self.add_to_history(history_cell::new_error_event(
-                "没有可复制的智能体回复".into(),
+                "No agent response to copy".into(),
             )),
         }
         self.request_redraw();
@@ -278,19 +278,19 @@ impl ChatWidget {
         let tx = self.app_event_tx.clone();
         let existing_name = self.thread_name.as_deref().filter(|name| !name.is_empty());
         let title = if existing_name.is_some() {
-            "重命名会话"
+            "Rename thread"
         } else {
-            "命名会话"
+            "Name thread"
         };
         let view = CustomPromptView::new(
             title.to_string(),
-            "输入名称后按 Enter".to_string(),
+            "Type a name and press Enter".to_string(),
             /*initial_text*/ existing_name.unwrap_or_default().to_string(),
             /*context_label*/ None,
             Box::new(move |name: String| {
                 let Some(name) = crate::legacy_core::util::normalize_thread_name(&name) else {
                     tx.send(AppEvent::InsertHistoryCell(Box::new(
-                        history_cell::new_error_event("会话名称不能为空。".to_string()),
+                        history_cell::new_error_event("Thread name cannot be empty.".to_string()),
                     )));
                     return;
                 };

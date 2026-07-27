@@ -37,25 +37,30 @@ impl Notification {
         match self {
             Notification::AgentTurnComplete { response } => {
                 Notification::agent_turn_preview(response)
-                    .unwrap_or_else(|| "代理回合已完成".to_string())
+                    .unwrap_or_else(|| "Agent turn complete".to_string())
             }
             Notification::ExecApprovalRequested { command } => {
-                format!("需要审批：{}", truncate_text(command, /*max_graphemes*/ 30))
+                format!(
+                    "Approval requested: {}",
+                    truncate_text(command, /*max_graphemes*/ 30)
+                )
             }
             Notification::EditApprovalRequested { cwd, changes } => {
-                let target = if changes.len() == 1 {
-                    #[allow(clippy::unwrap_used)]
-                    display_path_for(changes.first().unwrap(), cwd)
-                } else {
-                    format!("{} 个文件", changes.len())
-                };
-                format!("Codex 想要编辑 {target}")
+                format!(
+                    "Codex wants to edit {}",
+                    if changes.len() == 1 {
+                        #[allow(clippy::unwrap_used)]
+                        display_path_for(changes.first().unwrap(), cwd)
+                    } else {
+                        format!("{} files", changes.len())
+                    }
+                )
             }
             Notification::ElicitationRequested { server_name } => {
-                format!("{server_name} 请求审批")
+                format!("Approval requested by {server_name}")
             }
             Notification::PlanModePrompt { title } => {
-                format!("计划模式提示：{title}")
+                format!("Plan mode prompt: {title}")
             }
         }
     }

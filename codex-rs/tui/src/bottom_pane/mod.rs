@@ -1385,10 +1385,10 @@ impl BottomPane {
                     description: None,
                     instructions: match suggestion_type {
                         AppLinkSuggestionType::Install => {
-                            "请在浏览器中安装此应用，然后返回此处。".to_string()
+                            "Install this app in your browser, then return here.".to_string()
                         }
                         AppLinkSuggestionType::Enable => {
-                            "请启用此应用，以便在当前请求中使用。".to_string()
+                            "Enable this app to use it for the current request.".to_string()
                         }
                         AppLinkSuggestionType::Auth => unreachable!(
                             "auth uses URL mode elicitation, not tool suggestion forms"

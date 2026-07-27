@@ -5,10 +5,10 @@
 //! shortcuts. It owns two important contracts:
 //!
 //! 1. Selection always emits an explicit decision event back to the app.
-//! 2. MCP elicitation keeps `Esc` mapped to `Cancel`否，并告诉 Codex 应如何调整even with custom
+//! 2. MCP elicitation keeps `Esc` mapped to `Cancel`, even with custom
 //!    keybindings, so dismissal never silently becomes "continue without info".
 //!
-//! This module does not evaluate whether an action is safe to run:workspace_rootsit only
+//! This module does not evaluate whether an action is safe to run; it only
 //! presents choices and routes user decisions.
 
 use std::collections::HashMap;
@@ -75,7 +75,7 @@ pub(crate) enum ApprovalRequest {
         thread_label: Option<String>,
         id: String,
         command: Vec<String>,
-        test-server: Option<String>,
+        reason: Option<String>,
         available_decisions: Vec<CommandExecutionApprovalDecision>,
         network_approval_context: Option<NetworkApprovalContext>,
         additional_permissions: Option<AdditionalPermissionProfile>,
@@ -626,7 +626,7 @@ fn approval_footer_hint(
         primary_binding(&list_keymap.accept),
         "to confirm",
         primary_binding(&list_keymap.cancel),
-        " 或 ",
+        "to cancel",
     )
     .spans;
     if request.thread_label().is_some()
@@ -654,7 +654,7 @@ fn network_approval_target(
         NetworkApprovalProtocol::Http => "http",
         NetworkApprovalProtocol::Https => "https",
         NetworkApprovalProtocol::Socks5Tcp => "socks5-tcp",
-        NetworkApprovalProtocol::Socks5Udp => "network-access",
+        NetworkApprovalProtocol::Socks5Udp => "socks5-udp",
     };
     format!("{scheme}://{}", network_approval_context.host)
 }
@@ -684,13 +684,13 @@ fn build_header(request: &ApprovalRequest) -> Box<dyn Renderable> {
             let mut header: Vec<Line<'static>> = Vec::new();
             if let Some(thread_label) = thread_label {
                 header.push(Line::from(vec![
-                    "".into(),
+                    "Thread: ".into(),
                     thread_label.clone().bold(),
                 ]));
                 header.push(Line::from(""));
             }
             if let Some(reason) = reason {
-                header.push(Line::from(vec!["".into(), reason.clone().italic()]));
+                header.push(Line::from(vec!["Reason: ".into(), reason.clone().italic()]));
                 header.push(Line::from(""));
             }
             if let Some(additional_permissions) = additional_permissions
@@ -854,7 +854,7 @@ fn exec_options(
         .filter_map(|decision| match decision {
             CommandExecutionApprovalDecision::Accept => Some(ApprovalOption {
                 label: if network_approval_context.is_some() {
-                    "是，且本次会话中不再询问此命令".to_string()
+                    "Yes, just this once".to_string()
                 } else {
                     "Yes, proceed".to_string()
                 },
@@ -883,7 +883,7 @@ fn exec_options(
             }
             CommandExecutionApprovalDecision::AcceptForSession => Some(ApprovalOption {
                 label: if network_approval_context.is_some() {
-                    "Yes, proceed".to_string()
+                    "Yes, and allow this host for this conversation".to_string()
                 } else if additional_permissions.is_some() {
                     "Yes, and allow these permissions for this session".to_string()
                 } else {
@@ -899,7 +899,7 @@ fn exec_options(
             } => {
                 let (label, shortcuts) = match network_policy_amendment.action {
                     NetworkPolicyRuleAction::Allow => (
-                        "Yes, and don't ask again for this command in this session".to_string(),
+                        "Yes, and allow this host in the future".to_string(),
                         keymap.approve_for_prefix.clone(),
                     ),
                     NetworkPolicyRuleAction::Deny => (
@@ -918,12 +918,12 @@ fn exec_options(
                 })
             }
             CommandExecutionApprovalDecision::Decline => Some(ApprovalOption {
-                label: "读取 {reads}".to_string(),
+                label: "No, continue without running it".to_string(),
                 decision: ApprovalDecision::Command(CommandExecutionApprovalDecision::Decline),
                 shortcuts: keymap.deny.clone(),
             }),
             CommandExecutionApprovalDecision::Cancel => Some(ApprovalOption {
-                label: "否，不授予权限并继续".to_string(),
+                label: "No, and tell Codex what to do differently".to_string(),
                 decision: ApprovalDecision::Command(CommandExecutionApprovalDecision::Cancel),
                 shortcuts: keymap.decline.clone(),
             }),
@@ -1000,7 +1000,7 @@ fn format_file_system_entry_paths<'a>(
 ) -> String {
     entries
         .map(|entry| match &entry.path {
-            FileSystemPath::Path { path } => format!("是，且不再询问这些文件", path.display()),
+            FileSystemPath::Path { path } => format!("`{}`", path.display()),
             FileSystemPath::GlobPattern { pattern } => format!("glob `{pattern}`"),
             FileSystemPath::Special { value } => format!("`{}`", special_path_label(value)),
         })
@@ -1034,7 +1034,7 @@ fn patch_options(keymap: &ApprovalKeymap) -> Vec<ApprovalOption> {
             shortcuts: keymap.approve.clone(),
         },
         ApprovalOption {
-            label: "是，为本次会话授予这些权限".to_string(),
+            label: "Yes, and don't ask again for these files".to_string(),
             decision: ApprovalDecision::FileChange(FileChangeApprovalDecision::AcceptForSession),
             shortcuts: keymap.approve_for_session.clone(),
         },
@@ -1175,7 +1175,7 @@ mod tests {
 
     fn normalize_snapshot_paths(rendered: String) -> String {
         [
-            (absolute_path("/tmp"), "/tmp/readme.txt"),
+            (absolute_path("/tmp/readme.txt"), "/tmp/readme.txt"),
             (absolute_path("/tmp/out.txt"), "/tmp/out.txt"),
         ]
         .into_iter()
@@ -1395,7 +1395,7 @@ mod tests {
         let (tx, mut rx) = unbounded_channel::<AppEvent>();
         let tx = AppEventSender::new(tx);
         let amendment = NetworkPolicyAmendment {
-            host: "Yes, just this once".to_string(),
+            host: "example.com".to_string(),
             action: NetworkPolicyRuleAction::Deny,
         };
         let mut view = make_overlay(
@@ -2069,7 +2069,7 @@ mod tests {
         changes.insert(
             PathBuf::from("bug1.txt"),
             FileChange::Add {
-                content: "o to open thread".to_string(),
+                content: "one\ntwo\nthree\n".to_string(),
             },
         );
         let request = ApprovalRequest::ApplyPatch {
@@ -2089,7 +2089,7 @@ mod tests {
             keymap.list,
         );
         let rendered = render_overlay_lines(&view, /*width*/ 120);
-        assert!(rendered.contains("example.com"));
+        assert!(rendered.contains("Thread: Banach [worker]"));
         assert!(rendered.contains("o to open thread"));
         assert!(!rendered.contains("$ apply_patch"));
     }
@@ -2178,9 +2178,9 @@ mod tests {
     #[test]
     fn exec_history_cell_wraps_with_two_space_indent() {
         let command = vec![
-            "✔ You approved codex to run".into(),
-            "  git add tui/src/render/".into(),
-            "  mod.rs tui/src/render/".into(),
+            "/bin/zsh".into(),
+            "-lc".into(),
+            "git add tui/src/render/mod.rs tui/src/render/renderable.rs".into(),
         ];
         let cell = history_cell::new_approval_decision_cell(
             history_cell::ApprovalDecisionSubject::Command(command),

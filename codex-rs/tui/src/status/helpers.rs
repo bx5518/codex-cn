@@ -19,29 +19,14 @@ pub(crate) fn compose_model_display(
 ) -> (String, Vec<String>) {
     let mut details: Vec<String> = Vec::new();
     if let Some((_, effort)) = entries.iter().find(|(k, _)| *k == "reasoning effort") {
-        let effort = match effort.to_ascii_lowercase().as_str() {
-            "none" => "无".to_string(),
-            "minimal" => "极低".to_string(),
-            "low" => "低".to_string(),
-            "medium" => "中".to_string(),
-            "high" => "高".to_string(),
-            "xhigh" => "极高".to_string(),
-            other => other.to_string(),
-        };
-        details.push(format!("推理强度 {effort}"));
+        details.push(format!("reasoning {}", effort.to_ascii_lowercase()));
     }
     if let Some((_, summary)) = entries.iter().find(|(k, _)| *k == "reasoning summaries") {
         let summary = summary.trim();
         if summary.eq_ignore_ascii_case("none") || summary.eq_ignore_ascii_case("off") {
-            details.push("推理摘要已关闭".to_string());
+            details.push("summaries off".to_string());
         } else if !summary.is_empty() {
-            let summary = match summary.to_ascii_lowercase().as_str() {
-                "auto" => "自动".to_string(),
-                "concise" => "简洁".to_string(),
-                "detailed" => "详细".to_string(),
-                other => other.to_string(),
-            };
-            details.push(format!("推理摘要 {summary}"));
+            details.push(format!("summaries {}", summary.to_ascii_lowercase()));
         }
     }
 
@@ -56,7 +41,7 @@ pub(crate) fn compose_agents_summary(config: &Config, paths: &[AbsolutePathBuf])
         let file_name = p
             .file_name()
             .map(|name| name.to_string_lossy().to_string())
-            .unwrap_or_else(|| "<未知>".to_string());
+            .unwrap_or_else(|| "<unknown>".to_string());
         let display = if let Some(parent) = p.parent() {
             if parent == config.cwd.as_path() {
                 file_name.clone()
@@ -88,7 +73,7 @@ pub(crate) fn compose_agents_summary(config: &Config, paths: &[AbsolutePathBuf])
     }
 
     if rels.is_empty() {
-        "<无>".to_string()
+        "<none>".to_string()
     } else {
         rels.join(", ")
     }
@@ -181,7 +166,7 @@ pub(crate) fn format_reset_timestamp(dt: DateTime<Local>, captured_at: DateTime<
     if dt.date_naive() == captured_at.date_naive() {
         time
     } else {
-        format!("{} {time}", dt.format("%m-%d"))
+        format!("{time} on {}", dt.format("%-d %b"))
     }
 }
 

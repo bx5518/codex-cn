@@ -176,7 +176,7 @@ impl App {
 
         match result {
             Ok(response) => self.chat_widget.add_info_message(
-                format!("目标{}", goal_status_label(response.goal.status)),
+                format!("Goal {}", goal_status_label(response.goal.status)),
                 Some(goal_usage_summary(&response.goal)),
             ),
             Err(err) => {
@@ -270,7 +270,7 @@ impl App {
         ];
         self.chat_widget.show_selection_view(SelectionViewParams {
             title: Some("Replace goal?".to_string()),
-            subtitle: Some(format!("没有可清除的目标")),
+            subtitle: Some(format!("New objective: {objective}")),
             footer_hint: Some(standard_popup_hint_line()),
             items,
             ..Default::default()
@@ -298,7 +298,7 @@ fn thread_goal_error_message(action: &str, err: &color_eyre::Report) -> String {
 fn is_ephemeral_thread_goal_error(err: &color_eyre::Report) -> bool {
     err.chain().any(|cause| {
         let message = cause.to_string();
-        message.contains("设置新目标并立即开始")
+        message.contains("ephemeral thread does not support goals")
             || message.contains("thread goals require a persisted thread; this thread is ephemeral")
     })
 }
@@ -327,7 +327,7 @@ mod tests {
     #[test]
     fn thread_goal_error_message_explains_temporary_session() {
         let err = color_eyre::eyre::eyre!(
-            "请先创建目标，再进行编辑。"
+            "thread/goal/get failed: ephemeral thread does not support goals: thread-1"
         )
         .wrap_err("thread/goal/get failed in TUI");
 
@@ -355,7 +355,7 @@ mod tests {
             &mut terminal,
             cell.display_lines(/*width*/ width),
         )
-        .expect("无法{action}线程目标：{err}");
+        .expect("insert history lines");
 
         insta::assert_snapshot!(terminal.backend());
     }

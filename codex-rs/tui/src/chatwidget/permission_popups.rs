@@ -307,7 +307,7 @@ impl ChatWidget {
             )
         };
         let requires_confirmation = approvals_reviewer == ApprovalsReviewer::User
-            && preset.id == "windows"
+            && preset.id == "full-access"
             && !self
                 .config
                 .notices

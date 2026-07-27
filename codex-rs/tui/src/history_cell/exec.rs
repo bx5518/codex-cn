@@ -26,9 +26,9 @@ impl HistoryCell for UnifiedExecInteractionCell {
         let waited_only = self.stdin.is_empty();
 
         let mut header_spans = if waited_only {
-            vec!["• 已等待后台终端".bold()]
+            vec!["• Waited for background terminal".bold()]
         } else {
-            vec!["↳ ".dim(), "已与后台终端交互".bold()]
+            vec!["↳ ".dim(), "Interacted with background terminal".bold()]
         };
         if let Some(command) = &self.command_display
             && !command.is_empty()
@@ -70,9 +70,11 @@ impl HistoryCell for UnifiedExecInteractionCell {
                 .as_ref()
                 .filter(|command| !command.is_empty())
             {
-                out.push(Line::from(format!("已等待后台终端：{command}")));
+                out.push(Line::from(format!(
+                    "Waited for background terminal: {command}"
+                )));
             } else {
-                out.push(Line::from("已等待后台终端"));
+                out.push(Line::from("Waited for background terminal"));
             }
             return out;
         }
@@ -82,9 +84,11 @@ impl HistoryCell for UnifiedExecInteractionCell {
             .as_ref()
             .filter(|command| !command.is_empty())
         {
-            out.push(Line::from(format!("已与后台终端交互：{command}")));
+            out.push(Line::from(format!(
+                "Interacted with background terminal: {command}"
+            )));
         } else {
-            out.push(Line::from("已与后台终端交互"));
+            out.push(Line::from("Interacted with background terminal"));
         }
         out.extend(raw_lines_from_source(&self.stdin));
         out
@@ -124,11 +128,11 @@ impl HistoryCell for UnifiedExecProcessesCell {
         let wrap_width = width as usize;
         let max_processes = 16usize;
         let mut out: Vec<Line<'static>> = Vec::new();
-        out.push(vec!["后台终端".bold()].into());
+        out.push(vec!["Background terminals".bold()].into());
         out.push("".into());
 
         if self.processes.is_empty() {
-            out.push("  • 没有正在运行的后台终端。".italic().into());
+            out.push("  • No background terminals running.".italic().into());
             return out;
         }
 
@@ -207,7 +211,7 @@ impl HistoryCell for UnifiedExecProcessesCell {
 
         let remaining = self.processes.len().saturating_sub(shown);
         if remaining > 0 {
-            let more_text = format!("……另有 {remaining} 个正在运行");
+            let more_text = format!("... and {remaining} more running");
             if wrap_width <= prefix_width {
                 out.push(Line::from(prefix.dim()));
             } else {

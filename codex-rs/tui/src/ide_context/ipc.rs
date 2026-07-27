@@ -22,34 +22,35 @@ const MAX_IPC_FRAME_BYTES: usize = 256 * 1024 * 1024;
 #[cfg(any(unix, windows))]
 const TUI_SOURCE_CLIENT_ID: &str = "codex-tui";
 #[cfg(any(unix, windows))]
-const OPEN_IDE_HINT: &str = "请在 VS Code 或 Cursor 中打开此项目，并确保 Codex 扩展已启用。";
+const OPEN_IDE_HINT: &str =
+    "Open this project in VS Code or Cursor with the Codex extension active.";
 #[cfg(any(unix, windows))]
-const IDE_DID_NOT_PROVIDE_CONTEXT_HINT: &str = "IDE 扩展未提供上下文。";
+const IDE_DID_NOT_PROVIDE_CONTEXT_HINT: &str = "The IDE extension did not provide context.";
 #[cfg(any(unix, windows))]
-const KEEP_TRYING_HINT: &str = "Codex 将在后续消息中继续尝试。";
+const KEEP_TRYING_HINT: &str = "Codex will keep trying on future messages.";
 
 #[derive(Debug, Error)]
 pub(crate) enum IdeContextError {
     #[cfg(any(unix, windows))]
-    #[error("连接 IDE 上下文提供程序失败：{0}")]
+    #[error("failed to connect to IDE context provider: {0}")]
     Connect(std::io::Error),
     #[cfg(any(unix, windows))]
-    #[error("请求 IDE 上下文失败：{0}")]
+    #[error("failed to request IDE context: {0}")]
     Send(std::io::Error),
     #[cfg(any(unix, windows))]
-    #[error("读取 IDE 上下文失败：{0}")]
+    #[error("failed to read IDE context: {0}")]
     Read(std::io::Error),
     #[cfg(any(unix, windows))]
-    #[error("IDE 上下文响应无效：{0}")]
+    #[error("invalid IDE context response: {0}")]
     InvalidResponse(String),
     #[cfg(any(unix, windows))]
-    #[error("IDE 上下文响应超过最大大小")]
+    #[error("IDE context response exceeded maximum size")]
     ResponseTooLarge,
     #[cfg(any(unix, windows))]
-    #[error("IDE 上下文请求失败")]
+    #[error("IDE context request failed")]
     RequestFailed(String),
     #[cfg(not(any(unix, windows)))]
-    #[error("此平台不支持 IDE 上下文")]
+    #[error("IDE context is not supported on this platform")]
     UnsupportedPlatform,
 }
 
@@ -62,14 +63,16 @@ impl IdeContextError {
                 OPEN_IDE_HINT.to_string()
             }
             IdeContextError::RequestFailed(_) => {
-                format!("{IDE_DID_NOT_PROVIDE_CONTEXT_HINT} 请重试 /ide。")
+                format!("{IDE_DID_NOT_PROVIDE_CONTEXT_HINT} Try /ide again.")
             }
             IdeContextError::ResponseTooLarge => {
-                "所选 IDE 上下文过大。请清除 IDE 中较大的选区，然后重试 /ide。".to_string()
+                "The selected IDE context is too large. Clear any large selection in your IDE and try /ide again.".to_string()
             }
-            IdeContextError::Send(_) => "Codex 无法请求 IDE 上下文。请重试 /ide。".to_string(),
+            IdeContextError::Send(_) => {
+                "Codex could not request IDE context. Try /ide again.".to_string()
+            }
             IdeContextError::Read(_) | IdeContextError::InvalidResponse(_) => {
-                "Codex 无法读取 IDE 上下文。请重试 /ide。".to_string()
+                "Codex could not read IDE context. Try /ide again.".to_string()
             }
         }
     }
@@ -78,33 +81,38 @@ impl IdeContextError {
     pub(crate) fn prompt_skip_hint(&self) -> String {
         match self {
             IdeContextError::ResponseTooLarge => {
-                "所选 IDE 上下文过大。请清除 IDE 中较大的选区。".to_string()
+                "The selected IDE context is too large. Clear any large selection in your IDE."
+                    .to_string()
             }
             IdeContextError::Connect(_) => OPEN_IDE_HINT.to_string(),
             IdeContextError::RequestFailed(error) if error == "no-client-found" => {
                 OPEN_IDE_HINT.to_string()
             }
             IdeContextError::Read(error) if error.kind() == std::io::ErrorKind::TimedOut => {
-                "Codex 等待 IDE 上下文超时，将在后续消息中继续尝试。".to_string()
+                "Codex timed out waiting for IDE context. It will keep trying on future messages."
+                    .to_string()
             }
             IdeContextError::RequestFailed(error) if error == "client-disconnected" => {
-                hint_with_retry("Codex 请求上下文时 IDE 连接发生了变化。")
+                hint_with_retry("The IDE connection changed while Codex was requesting context.")
             }
             IdeContextError::RequestFailed(error) if error == "request-timeout" => {
-                hint_with_retry("IDE 扩展未及时响应。")
+                hint_with_retry("The IDE extension did not answer in time.")
             }
             IdeContextError::RequestFailed(error) if error == "request-version-mismatch" => {
-                "已连接的 IDE 扩展与此次 IDE 上下文请求不兼容。".to_string()
+                "The connected IDE extension is not compatible with this IDE context request."
+                    .to_string()
             }
             IdeContextError::RequestFailed(error) if error == "no-handler-for-request" => {
-                "已连接的 IDE 客户端不支持 IDE 上下文请求。".to_string()
+                "The connected IDE client does not support IDE context requests.".to_string()
             }
-            IdeContextError::Send(_) => hint_with_retry("Codex 请求上下文时丢失了 IDE 连接。"),
+            IdeContextError::Send(_) => {
+                hint_with_retry("Codex lost the IDE connection while requesting context.")
+            }
             IdeContextError::InvalidResponse(_) => {
-                hint_with_retry("Codex 收到了意外的 IDE 上下文响应。")
+                hint_with_retry("Codex received an unexpected IDE context response.")
             }
             IdeContextError::RequestFailed(_) => hint_with_retry(IDE_DID_NOT_PROVIDE_CONTEXT_HINT),
-            IdeContextError::Read(_) => hint_with_retry("Codex 无法读取 IDE 上下文。"),
+            IdeContextError::Read(_) => hint_with_retry("Codex could not read IDE context."),
         }
     }
 

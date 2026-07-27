@@ -7,4 +7,4 @@ expression: terminal.backend()
 "                                                            "
 "                                                            "
 "                                                            "
-"  /resume  恢复已保存的聊天                                 "
+"  /resume  resume a saved chat                              "

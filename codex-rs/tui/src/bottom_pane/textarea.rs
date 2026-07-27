@@ -332,8 +332,8 @@ impl TextArea {
             return None;
         }
         Some(match self.vim_mode {
-            VimMode::Normal => "普通",
-            VimMode::Insert => "插入",
+            VimMode::Normal => "Normal",
+            VimMode::Insert => "Insert",
         })
     }
 
