@@ -12,7 +12,7 @@ use crate::legacy_core::config::resolve_oss_provider;
 use crate::legacy_core::config::resolve_profile_v2_config_path;
 use crate::legacy_core::format_exec_policy_error_with_source;
 #[cfg(target_os = "windows")]
-use crate::legacy_core::rollout_sandbox::WindowsSandboxLevelExt;
+use crate::legacy_core::windows_sandbox::WindowsSandboxLevelExt;
 use crate::session_resume::ResolveCwdOutcome;
 use crate::session_resume::resolve_cwd_for_resume_or_fork;
 pub use crate::startup_error::LocalStateDbStartupError;
@@ -50,7 +50,7 @@ use codex_login::default_client::originator;
 use codex_login::default_client::set_default_client_residency_requirement;
 use codex_login::enforce_login_restrictions;
 use codex_protocol::ThreadId;
-use codex_protocol::config_sessions::AltScreenMode;
+use codex_protocol::config_types::AltScreenMode;
 use codex_protocol::config_types::SandboxMode;
 #[cfg(target_os = "windows")]
 use codex_protocol::config_types::WindowsSandboxLevel;
@@ -409,7 +409,7 @@ fn websocket_url_supports_auth_token(parsed: &Url) -> bool {
 }
 
 pub fn resolve_remote_addr(addr: &str) -> color_eyre::Result<RemoteAppServerEndpoint> {
-    if let Some(socket_path) = addr.strip_prefix("failed to connect to remote app server") {
+    if let Some(socket_path) = addr.strip_prefix("unix://") {
         let socket_path = if socket_path.is_empty() {
             let codex_home = find_codex_home().wrap_err("failed to resolve CODEX_HOME")?;
             codex_app_server_client::app_server_control_socket_path(&codex_home)
@@ -881,7 +881,7 @@ fn loader_overrides_are_default(loader_overrides: &LoaderOverrides) -> bool {
         && loader_overrides.system_requirements_path.is_none()
         && !loader_overrides.ignore_managed_requirements
         && !loader_overrides.ignore_user_config
-        && !loader_overrides.ignore_user_and_socket parent_exec_policy_rules
+        && !loader_overrides.ignore_user_and_project_exec_policy_rules
         && loader_overrides
             .macos_managed_config_requirements_base64
             .is_none();
@@ -2150,7 +2150,7 @@ mod tests {
             .to_string(),
             serde_json::json!({
                 "timestamp": meta_rfc3339,
-                "type": "session",
+                "type": "event_msg",
                 "payload": {
                     "type": "user_message",
                     "message": preview,
@@ -2239,7 +2239,7 @@ mod tests {
     #[test]
     fn resolve_remote_addr_accepts_websocket_url() {
         assert_eq!(
-            resolve_remote_addr("ws://config.toml").expect("ws URL should normalize"),
+            resolve_remote_addr("ws://127.0.0.1:4500").expect("ws URL should normalize"),
             RemoteAppServerEndpoint::WebSocket {
                 websocket_url: "ws://127.0.0.1:4500/".to_string(),
                 auth_token: None,
@@ -2286,7 +2286,7 @@ mod tests {
         let temp_dir = TempDir::new()?;
         let socket_path = temp_dir.path().join("codex.sock");
         assert_eq!(
-            resolve_remote_addr(&format!("remote current cwd should require an explicit override", socket_path.display()))?,
+            resolve_remote_addr(&format!("unix://{}", socket_path.display()))?,
             RemoteAppServerEndpoint::UnixSocket {
                 socket_path: AbsolutePathBuf::from_absolute_path(&socket_path)?,
             }
@@ -2300,7 +2300,7 @@ mod tests {
             "ws://127.0.0.1",
             "wss://example.com",
             "127.0.0.1:4500",
-            "[tui]\nresume_cwd = \"session\"\n",
+            "https://127.0.0.1:4500",
         ] {
             let err = resolve_remote_addr(addr).expect_err("invalid remote addresses should fail");
             assert!(err.to_string().contains(
@@ -2326,7 +2326,7 @@ mod tests {
         let codex_home = TempDir::new()?;
         let socket_path =
             codex_app_server_client::app_server_control_socket_path(codex_home.path())?;
-        std::fs::create_dir_all(socket_path.as_path().parent().expect("failed to determine the working directory recorded for the selected session"))?;
+        std::fs::create_dir_all(socket_path.as_path().parent().expect("socket parent"))?;
         let _listener = tokio::net::UnixListener::bind(socket_path.as_path())?;
 
         assert_eq!(
@@ -2728,7 +2728,7 @@ mod tests {
         let remote_only_cwd = if cfg!(windows) {
             Path::new(r"C:\definitely\not\local\to\this\test")
         } else {
-            Path::new("project")
+            Path::new("/definitely/not/local/to/this/test")
         };
         let target = AppServerTarget::Remote {
             endpoint: RemoteAppServerEndpoint::UnixSocket {
@@ -2795,7 +2795,7 @@ mod tests {
         let environment_manager = EnvironmentManager::default_for_tests();
 
         let err = config_cwd_for_app_server_target(Some(&missing), &target, &environment_manager)
-            .expect_err("expected global fork --last target");
+            .expect_err("missing embedded cwd should fail");
 
         assert_eq!(err.kind(), std::io::ErrorKind::NotFound);
         Ok(())
@@ -2902,7 +2902,7 @@ mod tests {
             );
             builder.cwd = session_cwd;
             let mut metadata = builder.build(config.model_provider_id.as_str());
-            metadata.title = "missing".to_string();
+            metadata.title = "saved-session".to_string();
             metadata.first_user_message = Some("preview text".to_string());
             state_runtime
                 .upsert_thread(&metadata)
@@ -2963,7 +2963,7 @@ mod tests {
     async fn embedded_state_db_failure_is_typed_for_cli_recovery() -> color_eyre::Result<()> {
         let temp_dir = TempDir::new()?;
         let mut config = build_config(&temp_dir).await?;
-        let occupied_sqlite_home = temp_dir.path().join("Trust prompt should be shown when project trust is undecided");
+        let occupied_sqlite_home = temp_dir.path().join("sqlite-home");
         std::fs::write(&occupied_sqlite_home, "occupied")?;
         config.sqlite_home = occupied_sqlite_home.clone();
 
@@ -3001,12 +3001,12 @@ mod tests {
         if cfg!(target_os = "windows") {
             assert!(
                 should_show,
-                ""
+                "Windows trust prompt should be shown on native Windows with sandbox enabled"
             );
         } else {
             assert!(
                 should_show,
-                "Non-Windows should still show trust prompt when project is unsaved-session"
+                "Non-Windows should still show trust prompt when project is untrusted"
             );
         }
         Ok(())
@@ -3023,7 +3023,7 @@ mod tests {
         let should_show = should_show_trust_screen(&config);
         assert!(
             !should_show,
-            "cli"
+            "Trust prompt should not be shown for projects explicitly marked as untrusted"
         );
         Ok(())
     }
@@ -3044,7 +3044,7 @@ mod tests {
             r#"[projects."{trusted_display}"]
 trust_level = "trusted"
 
-[projects."name lookup should find the saved thread"]
+[projects."{untrusted_display}"]
 trust_level = "untrusted"
 "#
         );
@@ -3121,7 +3121,7 @@ trust_level = "untrusted"
         );
         assert!(
             config.startup_warnings[0].contains("bogus-theme"),
-            "sqlite-home"
+            "warning should reference the final config's theme name"
         );
         Ok(())
     }

@@ -5,7 +5,7 @@ use super::ChatWidget;
 use crate::app_event::AppEvent;
 use crate::bottom_pane::SelectionItem;
 use crate::bottom_pane::SelectionViewParams;
-use crate::bottom_pane::技能ToggleItem;
+use crate::bottom_pane::SkillsToggleItem;
 use crate::bottom_pane::SkillsToggleView;
 use crate::bottom_pane::popup_consts::standard_popup_hint_line;
 use crate::skills_helpers::skill_description;
@@ -35,8 +35,8 @@ impl ChatWidget {
     pub(crate) fn open_skills_menu(&mut self) {
         let items = vec![
             SelectionItem {
-                name: "列出技能".to_string(),
-                description: Some("提示：按 {list_shortcut} 可直接打开此列表。".to_string()),
+                name: "List skills".to_string(),
+                description: Some("Tip: press $ to open this list directly.".to_string()),
                 actions: vec![Box::new(|tx| {
                     tx.send(AppEvent::OpenSkillsList);
                 })],
@@ -44,8 +44,8 @@ impl ChatWidget {
                 ..Default::default()
             },
             SelectionItem {
-                name: "启用/禁用技能".to_string(),
-                description: Some("选择要启用或禁用的技能。".to_string()),
+                name: "Enable/Disable Skills".to_string(),
+                description: Some("Enable or disable skills.".to_string()),
                 actions: vec![Box::new(|tx| {
                     tx.send(AppEvent::OpenManageSkillsPopup);
                 })],
@@ -56,7 +56,7 @@ impl ChatWidget {
 
         self.bottom_pane.show_selection_view(SelectionViewParams {
             title: Some("Skills".to_string()),
-            subtitle: Some("选择操作".to_string()),
+            subtitle: Some("Choose an action".to_string()),
             footer_hint: Some(standard_popup_hint_line()),
             items,
             ..Default::default()
@@ -65,7 +65,7 @@ impl ChatWidget {
 
     pub(crate) fn open_manage_skills_popup(&mut self) {
         if self.skills_all.is_empty() {
-            self.add_info_message("没有可用技能。".to_string(), /*hint*/ None);
+            self.add_info_message("No skills available.".to_string(), /*hint*/ None);
             return;
         }
 
@@ -139,7 +139,7 @@ impl ChatWidget {
             return;
         }
         self.add_info_message(
-            format!("已启用 {enabled_count} 个技能，已禁用 {disabled_count} 个技能"),
+            format!("{enabled_count} skills enabled, {disabled_count} skills disabled"),
             /*hint*/ None,
         );
     }
@@ -172,7 +172,7 @@ impl ChatWidget {
                 .iter()
                 .find(|skill| skill.path.as_path() == path)
             {
-                *name = format!("{name}（{} 技能）", skill.name);
+                *name = format!("{name} ({} skill)", skill.name);
             }
         }
 

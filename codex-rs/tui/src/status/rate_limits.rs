@@ -14,7 +14,7 @@ use chrono::DateTime;
 use chrono::Duration as ChronoDuration;
 use chrono::Local;
 use chrono::Utc;
-use codex_app_server_protocol::5h limitSnapshot as CoreCreditsSnapshot;
+use codex_app_server_protocol::CreditsSnapshot as CoreCreditsSnapshot;
 use codex_app_server_protocol::RateLimitSnapshot;
 use codex_app_server_protocol::RateLimitWindow;
 use codex_app_server_protocol::SpendControlLimitSnapshot as CoreSpendControlLimitSnapshot;
@@ -248,7 +248,7 @@ pub(crate) fn compose_rate_limit_data_many(
 
         if show_limit_prefix && !combine_non_codex_single_limit {
             rows.push(StatusRateLimitRow {
-                label: format!("{limit_bucket_label} 限额"),
+                label: format!("{limit_bucket_label} limit"),
                 value: StatusRateLimitValue::Text(String::new()),
             });
         }
@@ -256,7 +256,7 @@ pub(crate) fn compose_rate_limit_data_many(
         if let Some(primary) = snapshot.primary.as_ref() {
             let label = if combine_non_codex_single_limit {
                 format!(
-                    "{} {}限额",
+                    "{} {} limit",
                     limit_bucket_label,
                     primary_label.clone().unwrap_or_else(|| capitalize_first(
                         fallback_limit_label(/*is_secondary*/ false)
@@ -264,7 +264,7 @@ pub(crate) fn compose_rate_limit_data_many(
                 )
             } else {
                 format!(
-                    "{}限额",
+                    "{} limit",
                     primary_label.clone().unwrap_or_else(|| capitalize_first(
                         fallback_limit_label(/*is_secondary*/ false)
                     ))
@@ -283,7 +283,7 @@ pub(crate) fn compose_rate_limit_data_many(
         if let Some(secondary) = snapshot.secondary.as_ref() {
             let label = if combine_non_codex_single_limit {
                 format!(
-                    "{} {}限额",
+                    "{} {} limit",
                     limit_bucket_label,
                     secondary_label.clone().unwrap_or_else(|| capitalize_first(
                         fallback_limit_label(/*is_secondary*/ true)
@@ -291,7 +291,7 @@ pub(crate) fn compose_rate_limit_data_many(
                 )
             } else {
                 format!(
-                    "{}限额",
+                    "{} limit",
                     secondary_label.clone().unwrap_or_else(|| capitalize_first(
                         fallback_limit_label(/*is_secondary*/ true)
                     ))
@@ -314,12 +314,12 @@ pub(crate) fn compose_rate_limit_data_many(
         }
         if let Some(individual_limit) = snapshot.individual_limit.as_ref() {
             rows.push(StatusRateLimitRow {
-                label: "每月额度限额".to_string(),
+                label: "Monthly credit limit".to_string(),
                 value: StatusRateLimitValue::Window {
                     percent_used: 100.0 - individual_limit.percent_remaining,
                     resets_at: individual_limit.resets_at.clone(),
                     details: Some(format!(
-                        "已使用 {} / {} 额度",
+                        "{} of {} credits used",
                         individual_limit.used, individual_limit.limit
                     )),
                 },
@@ -354,7 +354,7 @@ pub(crate) fn render_status_limit_progress_bar(percent_remaining: f64) -> String
 
 /// Formats a compact textual summary from remaining percentage.
 pub(crate) fn format_status_limit_summary(percent_remaining: f64) -> String {
-    format!("剩余 {percent_remaining:.0}%")
+    format!("{percent_remaining:.0}% left")
 }
 
 /// Builds a single `StatusRateLimitRow` for credits when the snapshot indicates
@@ -375,7 +375,7 @@ fn credit_status_row(credits: &CreditsSnapshotDisplay) -> Option<StatusRateLimit
     let display_balance = format_credit_balance(balance)?;
     Some(StatusRateLimitRow {
         label: "Credits".to_string(),
-        value: StatusRateLimitValue::Text(format!("可用")),
+        value: StatusRateLimitValue::Text(format!("{display_balance} credits")),
     })
 }
 
@@ -501,7 +501,7 @@ mod tests {
         assert_eq!(
             labels,
             vec![
-                "unexpected status: {other:?}".to_string(),
+                "codex-other limit".to_string(),
                 "Usage limit".to_string(),
                 "Secondary usage limit".to_string(),
             ]

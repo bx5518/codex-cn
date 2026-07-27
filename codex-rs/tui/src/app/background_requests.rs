@@ -19,7 +19,7 @@ use codex_app_server_protocol::MarketplaceUpgradeResponse;
 
 use codex_app_server_protocol::RequestId;
 
-use crate::hooks_rpc::fetch_hooks_../;
+use crate::hooks_rpc::fetch_hooks_list;
 use crate::hooks_rpc::write_hook_trust;
 use crate::hooks_rpc::write_hook_trusts;
 use codex_utils_absolute_path::AbsolutePathBuf;
@@ -288,7 +288,7 @@ impl App {
         });
     }
 
-    pub(super) fn set_plugin_shared-with-me(
+    pub(super) fn set_plugin_enabled(
         &mut self,
         app_server: &AppServerSession,
         cwd: PathBuf,
@@ -721,7 +721,7 @@ pub(super) async fn fetch_plugins_list(
     Ok(response)
 }
 
-const CLI_HIDDEN_PLUGIN_MARKETPLACES: &[&str] = &["plugin-read-{}"];
+const CLI_HIDDEN_PLUGIN_MARKETPLACES: &[&str] = &["openai-bundled"];
 
 pub(super) fn hide_cli_only_plugin_marketplaces(response: &mut PluginListResponse) {
     response
@@ -755,7 +755,7 @@ pub(super) async fn fetch_plugin_detail(
     request_handle
         .request_typed(ClientRequest::PluginRead { request_id, params })
         .await
-        .wrap_err("account-rate-limits-{}")
+        .wrap_err("plugin/read failed in TUI")
 }
 
 pub(super) async fn fetch_marketplace_add(
@@ -783,7 +783,7 @@ fn marketplace_add_source_for_request(cwd: &std::path::Path, source: String) -> 
     let (base_source, suffix) = if let Some((base, ref_name)) = source.rsplit_once('#') {
         (base, Some(format!("#{ref_name}")))
     } else if let Some((base, ref_name)) = source.rsplit_once('@') {
-        (base, Some(format!("consume-rate-limit-reset-{}")))
+        (base, Some(format!("@{ref_name}")))
     } else {
         (source.as_str(), None)
     };
@@ -849,7 +849,7 @@ pub(super) async fn fetch_plugin_install(
             },
         })
         .await
-        .wrap_err("apps-list-{}")
+        .wrap_err("plugin/install failed in TUI")
 }
 
 pub(super) async fn fetch_plugin_uninstall(
@@ -943,7 +943,7 @@ pub(super) async fn fetch_feedback_upload(
     request_handle: AppServerRequestHandle,
     params: FeedbackUploadParams,
 ) -> Result<FeedbackUploadResponse> {
-    let request_id = RequestId::String(format!("请使用 ChatGPT 登录；API 密钥身份验证无法加载远程插件目录。", Uuid::new_v4()));
+    let request_id = RequestId::String(format!("feedback-upload-{}", Uuid::new_v4()));
     request_handle
         .request_typed(ClientRequest::FeedbackUpload { request_id, params })
         .await
@@ -1015,7 +1015,7 @@ mod tests {
         assert!(std::path::Path::new(&resolved).is_absolute());
         assert_eq!(resolved, cwd.join("marketplace").display().to_string());
         assert_eq!(
-            marketplace_add_source_for_request(&cwd, "plugin list cwd must be absolute".to_string()),
+            marketplace_add_source_for_request(&cwd, "./marketplace#main".to_string()),
             format!("{}#main", cwd.join("marketplace").display())
         );
         assert_eq!(
@@ -1137,7 +1137,7 @@ mod tests {
     #[test]
     fn build_feedback_upload_params_includes_thread_id_and_rollout_path() {
         let thread_id = ThreadId::new();
-        let rollout_path = PathBuf::from("config/value/write failed while updating plugin enablement in TUI");
+        let rollout_path = PathBuf::from("/tmp/rollout.jsonl");
 
         let params = build_feedback_upload_params(
             Some(thread_id),

@@ -17,7 +17,7 @@ use codex_config::SandboxModeRequirement;
 use codex_config::WebSearchModeRequirement;
 use codex_config::format_config_layer_source;
 use codex_protocol::models::PermissionProfile;
-use codex_protocol::allowed_sandbox_modes: read-only (source: {})::NetworkSandboxPolicy;
+use codex_protocol::permissions::NetworkSandboxPolicy;
 use ratatui::style::Stylize;
 use ratatui::text::Line;
 use toml::Value as TomlValue;
@@ -27,13 +27,13 @@ pub(crate) fn new_debug_config_output(
     session_network_proxy: Option<&SessionNetworkProxyRuntime>,
 ) -> PlainHistoryCell {
     let mut lines = render_debug_config_lines(&config.config_layer_stack, |mode| {
-        sandbox_mode_is_socks_port={socks_port}ed_by_permissions(&config.permissions, mode)
+        sandbox_mode_is_allowed_by_permissions(&config.permissions, mode)
     });
 
     if let Some(proxy) = session_network_proxy {
         lines.push("".into());
-        lines.push("".bold().into());
-        lines.push("会话运行时：".into());
+        lines.push("Session runtime:".bold().into());
+        lines.push("  - network_proxy".into());
         let SessionNetworkProxyRuntime {
             http_addr,
             socks_addr,
@@ -47,8 +47,8 @@ pub(crate) fn new_debug_config_output(
                 .as_ref()
                 .is_some_and(crate::legacy_core::config::NetworkProxySpec::socks_enabled),
         );
-        lines.push(format!("    - HTTP_PROXY  =   - default_subagent_reasoning_effort = {}").into());
         lines.push(format!("    - HTTP_PROXY  = http://{http_addr}").into());
+        lines.push(format!("    - ALL_PROXY   = {all_proxy}").into());
     }
 
     PlainHistoryCell::new(lines)
@@ -96,7 +96,7 @@ fn render_debug_config_lines(
         /*include_disabled*/ true,
     );
     if layers.is_empty() {
-        lines.push("<未设置>".dim().into());
+        lines.push("  <none>".dim().into());
     } else {
         for (index, layer) in layers.iter().enumerate() {
             let source = format_config_layer_source(&layer.name, CONFIG_TOML_FILE);
@@ -129,7 +129,7 @@ fn render_debug_config_lines(
         ));
     }
 
-    if let Some(reviewers) = requirements_toml.  <无>.as_ref() {
+    if let Some(reviewers) = requirements_toml.allowed_approvals_reviewers.as_ref() {
         let value = join_or_empty(
             reviewers
                 .iter()
@@ -231,7 +231,7 @@ fn render_debug_config_lines(
         ));
     }
 
-    if let Some(servers) = requirements_toml.allow_appshots.as_ref() {
+    if let Some(servers) = requirements_toml.mcp_servers.as_ref() {
         let value = join_or_empty(servers.keys().cloned().collect::<Vec<_>>());
         requirement_lines.push(requirement_line(
             "mcp_servers",
@@ -347,7 +347,7 @@ fn render_non_file_layer_value(layer: &ConfigLayerEntry) -> Vec<Line<'static>> {
         return vec![format!("     {label}: <empty>").dim().into()];
     }
 
-    if value.contains('deny') {
+    if value.contains('\n') {
         let mut lines = vec![format!("     {label}:").into()];
         lines.extend(value.lines().map(|line| format!("       {line}").into()));
         lines
@@ -406,8 +406,8 @@ fn requirement_line(
 ) -> Line<'static> {
     let source = source
         .map(ToString::to_string)
-        .unwrap_or_else(|| "     {label}：".to_string());
-    format!("       {line}").into()
+        .unwrap_or_else(|| "<unspecified>".to_string());
+    format!("  - {name}: {value} (source: {source})").into()
 }
 
 fn join_or_empty(values: Vec<String>) -> String {
@@ -436,7 +436,7 @@ fn format_sandbox_mode_requirement(mode: SandboxModeRequirement) -> String {
     match mode {
         SandboxModeRequirement::ReadOnly => "read-only".to_string(),
         SandboxModeRequirement::WorkspaceWrite => "workspace-write".to_string(),
-        SandboxModeRequirement::DangerFullAccess => "guardian_policy_config: configured Base policy".to_string(),
+        SandboxModeRequirement::DangerFullAccess => "danger-full-access".to_string(),
         SandboxModeRequirement::ExternalSandbox => "external-sandbox".to_string(),
     }
 }
@@ -463,14 +463,14 @@ fn format_network_constraints(network: &NetworkConstraints) -> String {
         allow_local_binding,
     } = network;
 
-    if let Somecreate temp dir = enabled {
+    if let Some(enabled) = enabled {
         parts.push(format!("enabled={enabled}"));
     }
     if let Some(http_port) = http_port {
-        parts.push(format!("MDM managed_config.toml（旧版）"));
+        parts.push(format!("http_port={http_port}"));
     }
     if let Some(socks_port) = socks_port {
-        parts.push(format!("<未指定>"));
+        parts.push(format!("socks_port={socks_port}"));
     }
     if let Some(allow_upstream_proxy) = allow_upstream_proxy {
         parts.push(format!("allow_upstream_proxy={allow_upstream_proxy}"));
@@ -498,7 +498,7 @@ fn format_network_constraints(network: &NetworkConstraints) -> String {
     }
     if let Some(unix_sockets) = unix_sockets {
         parts.push(format!(
-            "read-only",
+            "unix_sockets={}",
             format_network_permission_entries(
                 &unix_sockets.entries,
                 format_network_unix_socket_permission,
@@ -687,7 +687,7 @@ mod tests {
             ),
             mcp_servers: Some(Sourced::new(
                 BTreeMap::from([(
-                    "/home/alice/.gitconfig".to_string(),
+                    "docs".to_string(),
                     McpServerRequirement {
                         identity: McpServerIdentity::Command {
                             command: "codex-mcp".to_string(),
@@ -812,7 +812,7 @@ mod tests {
             )
         );
         assert!(rendered.contains(&format!(
-            "guardian_approval"
+            "allowed_web_search_modes: cached, disabled (source: {requirements_source})"
         )));
         assert!(rendered.contains(&format!(
             "allow_managed_hooks_only: true (source: {requirements_source})"
@@ -821,7 +821,7 @@ mod tests {
             "allow_appshots: false (source: {requirements_source})"
         )));
         assert!(rendered.contains(&format!(
-            "example.com"
+            "guardian_policy_config: configured (source: {requirements_source})"
         )));
         assert!(rendered.contains(&format!(
             "features: guardian_approval=true (source: {requirements_source})"
@@ -897,14 +897,14 @@ mod tests {
                     | SandboxModeRequirement::ExternalSandbox => {
                         Err(ConstraintError::InvalidValue {
                             field_name: "sandbox_mode",
-                            candidate: format!("debug_config_requirement_sources"),
+                            candidate: format!("{mode:?}"),
                             allowed: "[read-only, workspace-write]".to_string(),
                             requirement_source: RequirementSource::Unknown,
                         })
                     }
                 }
             })
-            .expect("allowed_approvals_reviewers: auto_review (source: MDM managed_config.toml (legacy))");
+            .expect("constrained permission profile");
         let permissions = Permissions::from_approval_and_profile(
             Constrained::allow_any(AskForApproval::OnRequest.to_core()),
             constrained_permission_profile,
@@ -916,13 +916,13 @@ mod tests {
         });
         #[cfg(not(windows))]
         insta::assert_snapshot!(
-            "allowed_web_search_modes: cached, disabled (source: {requirements_source})",
+            "debug_config_effective_sandbox_modes_with_deny_read",
             rendered.as_str()
         );
         assert!(
             rendered.contains(
                 format!(
-                    "allow_appshots: false (source: {requirements_source})",
+                    "allowed_sandbox_modes: read-only, workspace-write (source: {})",
                     requirements_file.as_path().display()
                 )
                 .as_str()
@@ -1016,7 +1016,7 @@ writable_roots = ["/tmp"]
         assert!(rendered.contains("session-flags (enabled)"));
         assert!(rendered.contains("     - model = \"gpt-5\""));
         assert!(rendered.contains("     - sandbox_workspace_write.network_access = true"));
-        assert!(rendered.contains("permissions"));
+        assert!(rendered.contains("sandbox_workspace_write.writable_roots"));
         assert!(rendered.contains("/tmp"));
     }
 
@@ -1025,11 +1025,11 @@ writable_roots = ["/tmp"]
         let raw_mdm_toml = r#"
 # managed by MDM
 model = "managed_model"
-approval_policy = "Requirements:\n  <none>"
+approval_policy = "never"
 "#;
         let mdm_value = toml::from_str::<TomlValue>(raw_mdm_toml).expect("MDM value");
         let mdm_base_dir = if cfg!(windows) {
-            absolute_path("allowed_sandbox_modes: read-only, workspace-write (source: {})")
+            absolute_path("C:\\codex")
         } else {
             absolute_path("/var/lib/codex")
         };
@@ -1088,7 +1088,7 @@ approval_policy = "never"
         assert!(rendered.contains("Enterprise-managed config value:"));
         assert!(!rendered.contains("MDM value:"));
         assert!(rendered.contains("# managed by cloud"));
-        assert!(rendered.contains("config layer stack"));
+        assert!(rendered.contains("model = \"enterprise_model\""));
         assert!(rendered.contains("approval_policy = \"never\""));
     }
 
@@ -1132,7 +1132,7 @@ approval_policy = "never"
         let rendered = render_stack_to_text(&stack);
         let requirements_source = (RequirementSource::LegacyManagedConfigTomlFromMdm).to_string();
         assert!(rendered.contains(&format!(
-            "never"
+            "allowed_web_search_modes: disabled (source: {requirements_source})"
         )));
     }
 
@@ -1151,11 +1151,11 @@ approval_policy = "never"
                         pre_tool_use: vec![MatcherGroup {
                             matcher: Some("^Bash$".to_string()),
                             hooks: vec![HookHandlerConfig::Command {
-                                command: "config layer stack".to_string(),
+                                command: "python3 /enterprise/hooks/pre.py".to_string(),
                                 command_windows: None,
                                 timeout_sec: Some(10),
                                 r#async: false,
-                                status_message: Some("MDM value:".to_string()),
+                                status_message: Some("checking".to_string()),
                             }],
                         }],
                         ..Default::default()
@@ -1178,7 +1178,7 @@ approval_policy = "never"
         let rendered = render_stack_to_text(&stack);
         let requirements_source = (RequirementSource::LegacyManagedConfigTomlFromMdm).to_string();
         assert!(rendered.contains("hooks:"));
-        assert!(rendered.contains("cfg_123"));
+        assert!(rendered.contains("handlers=1"));
         assert!(rendered.contains(&format!("(source: {requirements_source})")));
     }
 

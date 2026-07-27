@@ -2,7 +2,7 @@ use codex_app_server_protocol::HookEventName;
 use codex_app_server_protocol::HookMetadata;
 use codex_app_server_protocol::HookSource;
 use codex_app_server_protocol::HookTrustStatus;
-use codex_app_server_protocol::钩子ListEntry;
+use codex_app_server_protocol::HooksListEntry;
 use crossterm::event::KeyCode;
 use crossterm::event::KeyEvent;
 use crossterm::event::KeyModifiers;
@@ -295,7 +295,7 @@ impl HooksBrowserView {
     fn event_header_lines() -> Vec<Line<'static>> {
         vec![
             "Hooks".bold().into(),
-            "来自配置和已启用插件的生命周期钩子。"
+            "Lifecycle hooks from config and enabled plugins."
                 .dim()
                 .into(),
         ]
@@ -314,7 +314,7 @@ impl HooksBrowserView {
         event_name: HookEventName,
         review_needed_count: usize,
     ) -> Vec<Line<'static>> {
-        let mut lines = vec![format!("开启或关闭钩子，所做更改会自动保存。", event_label(event_name)).bold().into()];
+        let mut lines = vec![format!("{} hooks", event_label(event_name)).bold().into()];
         match review_needed_message(review_needed_count) {
             None => lines.push(
                 "Turn hooks on or off. Your changes are saved automatically."
@@ -470,7 +470,7 @@ impl HooksBrowserView {
 
     fn detail_lines(&self, event_name: HookEventName, width: usize) -> Vec<Line<'static>> {
         let Some(hook) = self.selected_hook(event_name) else {
-            return vec!["匹配器".dim().into()];
+            return vec!["No hooks installed for this event.".dim().into()];
         };
 
         let mut lines = vec![detail_line("Event", event_label(event_name))];
@@ -511,7 +511,7 @@ impl HooksBrowserView {
                 key_hint::plain(KeyCode::Enter).into(),
                 " to review hooks; ".into(),
                 key_hint::plain(KeyCode::Esc).into(),
-                "按 ".into(),
+                " to close".into(),
             ]),
             HooksBrowserPage::Events => Line::from(vec![
                 "Press ".into(),
@@ -729,12 +729,12 @@ fn hook_trust_label(status: HookTrustStatus) -> &'static str {
 
 fn event_label(event_name: HookEventName) -> &'static str {
     match event_name {
-        HookEventName::会话开始 => "PreToolUse",
-        HookEventName::会话结束 => "PermissionRequest",
-        HookEventName::用户提交提示词 => "PostToolUse",
-        HookEventName::子智能体启动 => "PreCompact",
-        HookEventName::子智能体停止 => "PostCompact",
-        HookEventName::Codex 停止 => "SessionStart",
+        HookEventName::PreToolUse => "PreToolUse",
+        HookEventName::PermissionRequest => "PermissionRequest",
+        HookEventName::PostToolUse => "PostToolUse",
+        HookEventName::PreCompact => "PreCompact",
+        HookEventName::PostCompact => "PostCompact",
+        HookEventName::SessionStart => "SessionStart",
         HookEventName::UserPromptSubmit => "UserPromptSubmit",
         HookEventName::SubagentStart => "SubagentStart",
         HookEventName::SubagentStop => "SubagentStop",
@@ -744,13 +744,13 @@ fn event_label(event_name: HookEventName) -> &'static str {
 
 fn event_description(event_name: HookEventName) -> &'static str {
     match event_name {
-        HookEventName::PreToolUse => "压缩上下文之后",
-        HookEventName::PermissionRequest => "新会话开始时",
-        HookEventName::PostToolUse => "会话结束之前",
-        HookEventName::PreCompact => "用户提交提示词时",
-        HookEventName::PostCompact => "创建子智能体时",
-        HookEventName::SessionStart => "子智能体结束当前任务之前",
-        HookEventName::UserPromptSubmit => "Codex 结束当前任务之前",
+        HookEventName::PreToolUse => "Before a tool executes",
+        HookEventName::PermissionRequest => "When permission is requested",
+        HookEventName::PostToolUse => "After a tool executes",
+        HookEventName::PreCompact => "Before context compaction",
+        HookEventName::PostCompact => "After context compaction",
+        HookEventName::SessionStart => "When a new session starts",
+        HookEventName::UserPromptSubmit => "When the user submits a prompt",
         HookEventName::SubagentStart => "When a subagent is created",
         HookEventName::SubagentStop => "Right before a subagent ends its turn",
         HookEventName::Stop => "Right before Codex ends its turn",
@@ -791,14 +791,14 @@ fn detail_source_value(hook: &HookMetadata) -> String {
 
 fn config_source_label(source: HookSource) -> &'static str {
     match source {
-        HookSource::System => "管理员配置",
-        HookSource::User => "会话参数",
-        HookSource::Project => "管理员配置",
-        HookSource::Mdm => "管理员配置",
-        HookSource::SessionFlags => "云端管理配置",
+        HookSource::System => "Admin config",
+        HookSource::User => "User config",
+        HookSource::Project => "Project config",
+        HookSource::Mdm => "Admin config",
+        HookSource::SessionFlags => "Session flags",
         HookSource::Plugin => unreachable!("plugin hooks are handled by summary_source"),
-        HookSource::CloudRequirements => "管理员配置",
-        HookSource::CloudManagedConfig => "未知来源",
+        HookSource::CloudRequirements => "Admin config",
+        HookSource::CloudManagedConfig => "Cloud-managed config",
         HookSource::LegacyManagedConfigFile => "Admin config",
         HookSource::LegacyManagedConfigMdm => "Admin config",
         HookSource::Unknown => "Unknown source",
@@ -899,7 +899,7 @@ mod tests {
                 let normalized = rendered
                     .replace(&test_path_display("/tmp/hooks.json"), "/tmp/hooks.json")
                     .replace(&test_path_display("/tmp/h.json"), "/tmp/h.json");
-                format!("\n", width = area.width as usize)
+                format!("{normalized:width$}", width = area.width as usize)
             })
             .collect::<Vec<_>>()
             .join("\n")
@@ -924,7 +924,7 @@ mod tests {
         is_managed: bool,
         display_order: i64,
     ) -> HookMetadata {
-        let current_hash = "path:modified".to_string();
+        let current_hash = "sha256:current".to_string();
         HookMetadata {
             key: key.to_string(),
             event_name,
@@ -953,7 +953,7 @@ mod tests {
         HooksBrowserView::new(
             vec![
                 hook(
-                    "superpowers@openai-curated",
+                    "plugin:superpowers",
                     HookEventName::PreToolUse,
                     HookSource::Plugin,
                     Some("superpowers@openai-curated"),
@@ -1019,7 +1019,7 @@ mod tests {
     fn renders_event_browser_with_review_column_when_needed() {
         let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
         let mut untrusted_hook = hook(
-            "expected hook trust event, got {other:?}",
+            "path:untrusted",
             HookEventName::PreToolUse,
             HookSource::User,
             /*plugin_id*/ None,
@@ -1057,7 +1057,7 @@ mod tests {
         let (tx_raw, _rx) = unbounded_channel::<AppEvent>();
         let view = HooksBrowserView::new(
             Vec::new(),
-            vec!["failed to parse hooks config".to_string()],
+            vec!["skipped invalid matcher for PreToolUse".to_string()],
             vec![HookErrorInfo {
                 path: test_path_buf("/tmp/hooks.json"),
                 message: "failed to parse hooks config".to_string(),
@@ -1404,7 +1404,7 @@ mod tests {
         let (tx_raw, mut rx) = unbounded_channel::<AppEvent>();
         let mut view = HooksBrowserView::new(
             vec![hook(
-                "superpowers@openai-curated",
+                "plugin:superpowers",
                 HookEventName::PreToolUse,
                 HookSource::Plugin,
                 Some("superpowers@openai-curated"),
@@ -1422,7 +1422,7 @@ mod tests {
 
         match rx.try_recv().expect("toggle event") {
             AppEvent::SetHookEnabled { key, enabled } => {
-                assert_eq!(key, "expected hook toggle event, got {other:?}");
+                assert_eq!(key, "plugin:superpowers");
                 assert!(!enabled);
             }
             other => panic!("expected hook toggle event, got {other:?}"),
@@ -1500,7 +1500,7 @@ mod tests {
     fn trust_key_preserves_disabled_modified_handler() {
         let (tx_raw, mut rx) = unbounded_channel::<AppEvent>();
         let mut modified_hook = hook(
-            "expected hook trust event, got {other:?}",
+            "path:modified",
             HookEventName::PreToolUse,
             HookSource::User,
             /*plugin_id*/ None,
@@ -1520,7 +1520,7 @@ mod tests {
         view.handle_key_event(KeyEvent::from(KeyCode::Enter));
         view.handle_key_event(KeyEvent::from(KeyCode::Char('t')));
 
-        let hook = view.entry.hooks.first().expect("trust event");
+        let hook = view.entry.hooks.first().expect("trusted hook");
         assert!(!hook.enabled);
         assert_eq!(hook.trust_status, HookTrustStatus::Trusted);
         match rx.try_recv().expect("trust event") {
