@@ -47,7 +47,7 @@ jobs:
             pkg-config
 
       - name: Build Codex
-        run: cargo build --locked --target x86_64-unknown-linux-gnu --release --bin codex
+        run: cargo build --target x86_64-unknown-linux-gnu --release --bin codex
 
       - name: Package Linux binary
         shell: bash
@@ -105,7 +105,6 @@ jobs:
           set -euo pipefail
           export LIBSQLITE3_FLAGS=SQLITE_DISABLE_INTRINSIC
           cargo build \
-            --locked \
             --target x86_64-pc-windows-msvc \
             --release \
             --bin codex
